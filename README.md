@@ -16,14 +16,14 @@ python3 -m http.server 8000
 # Open http://localhost:8000
 ```
 
-## 🔐 Login (admin / leerkracht)
+## Login (admin / leerkracht)
 
 | Gebruikersnaam      | Wachtwoord  |
 |---------------------|-------------|
 | `Dimitri De Raeve`  | `w8tW00rD`  |
 | `Niels Verellen`    | `w8tW00rD`  |
 
-## ⚙️ Functionaliteiten
+## Functionaliteiten
 
 ### Voor alle gebruikers (zonder login)
 - 3D Spline-scene in vogelperspectief met admin-plaatsingen
@@ -41,13 +41,13 @@ python3 -m http.server 8000
 - **Manipulator-paneel** met:
   - 4-richting d-pad om te verplaatsen
   - Rotatie-knoppen (−15° / reset / +15°)
-  - Rode 🗑️ delete-knop — verwijdert plaatsing voor iedereen
+  - Rode delete-knop — verwijdert plaatsing voor iedereen
   - Status-indicator (groen = in Spline gevonden, oranje = alleen marker)
 - **Edit-formulier** met 5 tabs: Basisgegevens · Veiligheid · Handleiding · Controle · Olie & Smering
 - **Object-koppel modal**: klik op een onbekend 3D-object → kies welke machine het is → permanent gekoppeld voor iedereen
 - Sync-indicator rechtsboven flitst groen na elke opslag
 
-## 🏗 Architectuur
+## Architectuur
 
 ### Click-detectie op 3D objecten (3-laags)
 1. **Spline's eigen `mouseDown` event** — werkt voor scenes met events
@@ -104,7 +104,7 @@ onValue(ref(db, 'werkplaats-placements-v1'), snap => {
 
 Andere opties: **Supabase** (Postgres + auth) of een eigen **Express/FastAPI** backend.
 
-## 🗂 Bestandstructuur
+## Bestandstructuur
 
 ```
 werkplaats-2028/
@@ -116,7 +116,7 @@ werkplaats-2028/
 └── README.md               Deze file
 ```
 
-## 🎨 Design-keuzes
+## Design-keuzes
 
 | Aspect    | Keuze                                                                  |
 |-----------|------------------------------------------------------------------------|
@@ -126,12 +126,12 @@ werkplaats-2028/
 | Iconen    | SVG illustraties in Spline-stijl: navy bodies, crème kappen, gekleurde pentagon-buttons |
 | Motion    | Pop-in modals, sync-flash, vloeiende zone-zoom (1s cubic-bezier)       |
 
-## 🛠 Debug tips
+## Debug tips
 
 Open de browser console (F12) om te zien wat er gebeurt:
-- `📋 Spline-scene heeft N objecten (M met naam)` — lijst van alle objecten + namen
+- `Spline-scene heeft N objecten (M met naam)` — lijst van alle objecten + namen
 - `━━━ KLIK GEDETECTEERD ━━━` op elke klik in de 3D-scene
-- `✓ N object-koppelingen geladen uit storage` — bij elke refresh
+- `N object-koppelingen geladen uit storage` — bij elke refresh
 
 Opgeslagen koppelingen inspecteren:
 ```js
@@ -143,7 +143,7 @@ Alles resetten:
 localStorage.clear()  // refresh daarna
 ```
 
-## 👥 Credits
+## Credits
 
 Project: Bachelor Digital Experience Design — Thomas More Mechelen
 Opdrachtgever: Dimitri De Raeve — Thomas More Campus Geel
