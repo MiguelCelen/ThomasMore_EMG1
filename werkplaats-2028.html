@@ -1,0 +1,3512 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>EMG MORE — Mechanische Werkplaats 2028</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+
+:root {
+  --orange: #F05A28;
+  --orange-dark: #D14A1B;
+  --orange-soft: #FFF1EB;
+  --orange-tint: #FEE5D9;
+  --ink: #1A1A1A;
+  --ink-2: #4A4A4A;
+  --muted: #888A8E;
+  --line: #E8E8EA;
+  --bg: #FAFAFA;
+  --card: #FFFFFF;
+  --blue: #3B82F6;
+  --blue-soft: #E8F0FE;
+  --green: #22C55E;
+  --red: #EF4444;
+  --yellow: #F5C518;
+  --shadow-sm: 0 1px 2px rgba(20,20,20,0.04), 0 1px 8px rgba(20,20,20,0.04);
+  --shadow-md: 0 4px 24px rgba(20,20,20,0.08), 0 1px 4px rgba(20,20,20,0.04);
+  --shadow-lg: 0 24px 60px rgba(20,20,20,0.18), 0 4px 16px rgba(20,20,20,0.06);
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+  --font-display: 'Bricolage Grotesque', 'Plus Jakarta Sans', sans-serif;
+  --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: #F2F2F2;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+input { font-family: inherit; }
+
+.hidden { display: none !important; }
+
+#scene-wrap {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(180deg, #F4F4F4 0%, #E9E9EA 100%);
+  z-index: 0;
+  transform-origin: center center;
+  transition: transform 1s cubic-bezier(0.34, 1.2, 0.64, 1);
+  will-change: transform;
+}
+#canvas3d {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+}
+#scene-loader {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: linear-gradient(180deg, #F4F4F4 0%, #E9E9EA 100%);
+  color: var(--ink-2);
+  font-weight: 500;
+  z-index: 1;
+  transition: opacity 0.6s ease;
+}
+#scene-loader.fade { opacity: 0; pointer-events: none; }
+.spinner {
+  width: 42px;
+  height: 42px;
+  border: 3px solid var(--orange-tint);
+  border-top-color: var(--orange);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.top-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  padding: 28px 36px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  z-index: 10;
+  pointer-events: none;
+}
+.top-bar > * { pointer-events: auto; }
+.date-block h1 {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 2.6vw, 2.4rem);
+  color: var(--orange);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.date-block span {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.95rem;
+  color: var(--orange);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.user-block {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+#user-name {
+  color: var(--orange);
+  font-weight: 700;
+  font-size: 1rem;
+}
+.auth-btn {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--ink);
+  display: grid; place-items: center;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s, background 0.2s;
+  border: 1px solid var(--line);
+}
+.auth-btn:hover { transform: translateY(-1px); background: #FFF; }
+
+.legend {
+  position: fixed;
+  bottom: 32px;
+  left: 28px;
+  background: var(--card);
+  border-radius: var(--radius-md);
+  padding: 18px 22px;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 10;
+  min-width: 200px;
+  backdrop-filter: blur(8px);
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--ink);
+  cursor: pointer;
+  transition: opacity 0.15s;
+  user-select: none;
+}
+.legend-item:hover { opacity: 0.7; }
+.legend-item.active {
+  font-weight: 700;
+}
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.zone-nav {
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  transform: translateX(-50%);
+  background: var(--card);
+  border-radius: var(--radius-pill);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: var(--shadow-md);
+  z-index: 10;
+  min-width: 280px;
+}
+.zone-arrow {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  color: var(--ink);
+  transition: background 0.15s;
+}
+.zone-arrow:hover { background: var(--orange-soft); color: var(--orange); }
+.zone-arrow.ghost { background: transparent; }
+.zone-label {
+  flex: 1;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.zone-pin { color: var(--orange); }
+
+.fab-stack {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  display: flex;
+  gap: 12px;
+  z-index: 10;
+}
+.fab {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: var(--orange);
+  color: #fff;
+  display: grid; place-items: center;
+  box-shadow: 0 8px 20px rgba(240,90,40,0.35), 0 2px 4px rgba(0,0,0,0.06);
+  transition: transform 0.15s, background 0.2s;
+}
+.fab:hover { transform: translateY(-2px); background: var(--orange-dark); }
+.fab.active { background: var(--orange-dark); box-shadow: 0 4px 10px rgba(240,90,40,0.5); }
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(20,20,30,0.45);
+  backdrop-filter: blur(4px);
+  display: grid;
+  place-items: center;
+  z-index: 100;
+  animation: fade-in 0.2s ease;
+  padding: 24px;
+}
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+.modal-panel {
+  position: relative;
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  padding: 36px 28px 28px;
+  max-width: 460px;
+  width: 100%;
+  max-height: 86vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-lg);
+  animation: pop-in 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(0.94) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal-close {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  color: var(--orange);
+  border: 1.5px solid var(--orange);
+  background: var(--card);
+  transition: background 0.15s;
+}
+.modal-close:hover { background: var(--orange-soft); }
+.modal-title {
+  font-family: var(--font-display);
+  text-align: right;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--orange);
+  margin-bottom: 6px;
+}
+
+.list-panel { max-width: 520px; }
+.zone-switcher {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 8px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 6px;
+}
+.list-zone-label {
+  font-weight: 600;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.machine-list {
+  overflow-y: auto;
+  flex: 1;
+  padding-top: 4px;
+  margin-right: -8px;
+  padding-right: 4px;
+}
+.machine-list::-webkit-scrollbar { width: 6px; }
+.machine-list::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+
+.machine-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 12px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-bottom: 4px;
+}
+.machine-row:hover { background: var(--orange-soft); }
+.machine-row.selected { background: var(--orange-soft); }
+.machine-icon {
+  width: 56px; height: 56px;
+  background: #F4F6F8;
+  border-radius: 12px;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+  padding: 4px;
+  transition: transform 0.2s;
+  overflow: hidden;
+}
+.machine-row:hover .machine-icon { transform: scale(1.05); }
+.machine-icon.zone-blauw { background: #EEF4FE; }
+.machine-icon.zone-groen { background: #EBF7F0; }
+.machine-icon.zone-rood { background: #FBEEEE; }
+.machine-icon.zone-geel { background: #FCF6E1; }
+.machine-icon.zone-oranje { background: #FFF1EB; }
+.machine-icon svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.08));
+}
+.machine-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.machine-info { flex: 1; min-width: 0; }
+.machine-info h3 {
+  color: var(--orange);
+  font-weight: 700;
+  font-size: 1.05rem;
+  margin-bottom: 2px;
+}
+.machine-info p {
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+.machine-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.machine-action {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  border: 1.5px solid var(--blue);
+  color: var(--blue);
+  background: var(--card);
+  transition: background 0.15s;
+}
+.machine-action.delete { border-color: var(--red); color: var(--red); }
+.machine-action:hover { background: var(--blue-soft); }
+.machine-action.delete:hover { background: #FDECEC; }
+
+.info-panel {
+  position: relative;
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  width: min(1100px, 100%);
+  height: min(680px, 90vh);
+  box-shadow: var(--shadow-lg);
+  animation: pop-in 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.live3d-badge {
+  position: absolute;
+  top: 22px; left: 24px;
+  background: var(--orange-soft);
+  color: var(--orange);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.05em;
+  z-index: 2;
+}
+.info-close {
+  position: absolute;
+  top: 18px; right: 18px;
+  left: auto;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+}
+.info-close:hover { background: var(--orange-soft); }
+.info-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  flex: 1;
+  min-height: 0;
+}
+.info-3d {
+  position: relative;
+  background: linear-gradient(180deg, #fff 0%, #F5F5F5 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.info-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+}
+.info-3d-loader {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: linear-gradient(180deg, #fff 0%, #F5F5F5 100%);
+  color: var(--ink-2);
+  font-weight: 500;
+  font-size: 0.9rem;
+  z-index: 2;
+}
+.info-3d-loader .spinner {
+  width: 36px; height: 36px;
+  border: 3px solid var(--orange-tint);
+  border-top-color: var(--orange);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+.info-3d-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  perspective: 800px;
+  background: linear-gradient(180deg, #fff 0%, #F5F5F5 100%);
+  z-index: 1;
+}
+.info-3d-fallback svg {
+  max-width: 70%;
+  max-height: 70%;
+  filter: drop-shadow(0 18px 32px rgba(31,41,64,0.18));
+  animation: gentle-rotate 8s ease-in-out infinite;
+  transform-style: preserve-3d;
+}
+@keyframes gentle-rotate {
+  0%, 100% { transform: rotateY(-10deg) rotateX(4deg); }
+  50% { transform: rotateY(10deg) rotateX(4deg); }
+}
+.rotate-hint {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255,255,255,0.9);
+  border: 1px solid var(--line);
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+.info-zone-tag {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  background: var(--blue);
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.info-content {
+  padding: 56px 40px 32px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.info-eyebrow {
+  color: var(--orange);
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+.info-title {
+  font-family: var(--font-display);
+  color: var(--orange);
+  font-weight: 800;
+  font-size: 2rem;
+  letter-spacing: -0.02em;
+  margin-bottom: 24px;
+}
+.info-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 18px;
+  padding: 4px;
+  background: #F4F4F5;
+  border-radius: var(--radius-pill);
+  width: fit-content;
+}
+.info-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border-radius: var(--radius-pill);
+  color: var(--muted);
+  transition: all 0.2s;
+}
+.info-tab:hover { color: var(--ink); }
+.info-tab.active { background: var(--card); color: var(--orange); box-shadow: var(--shadow-sm); }
+.tab-icon { font-size: 1rem; }
+
+.info-body {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+.info-body::-webkit-scrollbar { width: 5px; }
+.info-body::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+.info-body h4 {
+  font-weight: 700;
+  color: var(--ink);
+  margin: 14px 0 6px;
+  font-size: 0.95rem;
+}
+.info-body p, .info-body li {
+  color: var(--ink-2);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+.info-body ul {
+  list-style: none;
+  padding: 0;
+}
+.info-body li {
+  padding: 8px 0 8px 26px;
+  position: relative;
+  border-bottom: 1px solid var(--line);
+}
+.info-body li:last-child { border-bottom: none; }
+.info-body li::before {
+  content: '';
+  position: absolute;
+  left: 4px; top: 16px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--orange);
+}
+.warning-band {
+  background: var(--orange-soft);
+  border-left: 3px solid var(--orange);
+  padding: 12px 14px;
+  border-radius: 6px;
+  margin: 10px 0;
+  font-size: 0.88rem;
+  color: var(--ink-2);
+}
+
+.login-panel {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  padding: 40px 36px 28px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: var(--shadow-lg);
+  animation: pop-in 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.login-logo {
+  width: 76px; height: 76px;
+  background: var(--orange);
+  color: #fff;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.78rem;
+  line-height: 1.1;
+  text-align: center;
+  margin-bottom: 16px;
+  box-shadow: 0 8px 20px rgba(240,90,40,0.35);
+}
+.login-title {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.login-subtitle {
+  color: var(--muted);
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+.form-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink-2);
+  margin-bottom: 14px;
+  width: 100%;
+}
+.form-label input,
+.form-label textarea,
+.form-label select {
+  padding: 12px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--ink);
+  transition: border-color 0.15s;
+  background: var(--card);
+}
+.form-label input:focus,
+.form-label textarea:focus,
+.form-label select:focus {
+  outline: none;
+  border-color: var(--orange);
+}
+.form-label textarea { resize: vertical; min-height: 90px; font-family: inherit; }
+.btn-primary {
+  width: 100%;
+  padding: 14px 24px;
+  background: var(--orange);
+  color: #fff;
+  font-weight: 700;
+  border-radius: var(--radius-pill);
+  font-size: 1rem;
+  margin-top: 6px;
+  margin-bottom: 8px;
+  transition: background 0.2s, transform 0.1s;
+  box-shadow: 0 4px 14px rgba(240,90,40,0.3);
+}
+.btn-primary:hover { background: var(--orange-dark); transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+.btn-ghost {
+  width: 100%;
+  padding: 10px;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.btn-ghost:hover { color: var(--ink); }
+.login-error {
+  color: var(--red);
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.login-hint {
+  margin-top: 18px;
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.5;
+}
+.login-hint code {
+  background: #F4F4F5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  color: var(--ink-2);
+}
+
+.edit-panel {
+  max-width: 640px;
+  width: 100%;
+}
+.edit-title {
+  font-family: var(--font-display);
+  color: var(--orange);
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+  padding-right: 30px;
+}
+.edit-sub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 500;
+  margin-bottom: 18px;
+}
+.badge-3d {
+  background: var(--orange);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin-left: 4px;
+}
+.edit-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  margin-bottom: 18px;
+  padding-bottom: 4px;
+}
+.edit-tabs::-webkit-scrollbar { height: 4px; }
+.edit-tab {
+  white-space: nowrap;
+  padding: 8px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--ink-2);
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.edit-tab:hover { border-color: var(--orange); color: var(--orange); }
+.edit-tab.active { background: var(--orange); border-color: var(--orange); color: #fff; }
+.edit-body {
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 4px;
+  min-height: 200px;
+  margin-bottom: 18px;
+}
+.edit-body::-webkit-scrollbar { width: 5px; }
+.edit-body::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+.path-confirm {
+  color: var(--green);
+  font-size: 0.82rem;
+  font-weight: 500;
+  margin-top: -8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.edit-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.edit-actions .btn-ghost { width: auto; padding: 12px 22px; }
+.edit-actions .btn-primary { flex: 1; margin: 0; }
+
+.admin-drawer {
+  position: fixed;
+  left: 0; right: 0;
+  bottom: 0;
+  background: var(--card);
+  box-shadow: 0 -8px 30px rgba(0,0,0,0.1);
+  z-index: 50;
+  border-top-left-radius: 22px;
+  border-top-right-radius: 22px;
+  animation: slide-up 0.3s ease;
+  max-height: 280px;
+  display: flex;
+  flex-direction: column;
+}
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.admin-drawer.collapsed { max-height: 60px; overflow: hidden; }
+.drawer-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--line);
+  position: relative;
+}
+.drawer-back {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 1.5px solid var(--orange);
+  color: var(--orange);
+  display: grid; place-items: center;
+  transition: background 0.15s;
+}
+.drawer-back:hover { background: var(--orange-soft); }
+.drawer-hint {
+  flex: 1;
+  text-align: center;
+  color: var(--orange);
+  font-weight: 600;
+  font-size: 0.9rem;
+  background: var(--orange-soft);
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--orange-tint);
+}
+.drawer-toggle {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: var(--orange-soft);
+  color: var(--orange);
+  display: grid; place-items: center;
+  transition: transform 0.2s;
+}
+.admin-drawer.collapsed .drawer-toggle { transform: rotate(180deg); }
+.drawer-content {
+  padding: 12px 22px 18px;
+  overflow: hidden;
+}
+.drawer-section-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+}
+.drawer-machines {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scroll-behavior: smooth;
+}
+.drawer-machines::-webkit-scrollbar { height: 6px; }
+.drawer-machines::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+
+.drawer-card {
+  flex-shrink: 0;
+  width: 140px;
+  height: 130px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 14px 12px 10px;
+  background: var(--card);
+  cursor: grab;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: all 0.15s;
+}
+.drawer-card:hover {
+  border-color: var(--orange);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-2px);
+}
+.drawer-card:active { cursor: grabbing; }
+.drawer-card.dragging { opacity: 0.4; }
+.drawer-card-badge {
+  position: absolute;
+  top: 8px; right: 8px;
+  background: var(--orange);
+  color: #fff;
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  z-index: 2;
+}
+.drawer-card-icon {
+  flex: 1;
+  display: grid; place-items: center;
+  padding: 4px;
+  background: #F4F6F8;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.drawer-card-icon svg {
+  width: 100%;
+  height: 100%;
+  max-height: 70px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+.drawer-card-icon.zone-blauw { background: #EEF4FE; }
+.drawer-card-icon.zone-groen { background: #EBF7F0; }
+.drawer-card-icon.zone-rood { background: #FBEEEE; }
+.drawer-card-icon.zone-geel { background: #FCF6E1; }
+.drawer-card-icon.zone-oranje { background: #FFF1EB; }
+.drawer-card-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 4px;
+  text-align: center;
+}
+
+.drag-ghost {
+  position: fixed;
+  width: 64px; height: 48px;
+  pointer-events: none;
+  z-index: 999;
+  opacity: 0.85;
+  transition: transform 0.05s linear;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+}
+
+.placement-markers {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+.placement-marker {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  pointer-events: auto;
+  cursor: pointer;
+  animation: marker-drop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+@keyframes marker-drop {
+  from { transform: translate(-50%, -130%) scale(0.6); opacity: 0; }
+  to { transform: translate(-50%, -100%) scale(1); opacity: 1; }
+}
+.marker-card {
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  box-shadow: 0 6px 18px rgba(20,20,20,0.18), 0 2px 4px rgba(20,20,20,0.06);
+  min-width: 64px;
+  transition: transform 0.15s, border-color 0.15s;
+}
+.marker-card:hover {
+  transform: scale(1.05);
+  border-color: var(--orange);
+}
+.placement-marker.selected .marker-card {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px rgba(240,90,40,0.2), 0 6px 18px rgba(20,20,20,0.18);
+}
+.marker-card-icon {
+  width: 44px; height: 44px;
+  background: #F4F6F8;
+  border-radius: 8px;
+  display: grid; place-items: center;
+  padding: 3px;
+  overflow: hidden;
+}
+.marker-card-icon.zone-blauw { background: #EEF4FE; }
+.marker-card-icon.zone-groen { background: #EBF7F0; }
+.marker-card-icon.zone-rood { background: #FBEEEE; }
+.marker-card-icon.zone-geel { background: #FCF6E1; }
+.marker-card-icon.zone-oranje { background: #FFF1EB; }
+.marker-card-icon svg { width: 100%; height: 100%; }
+.marker-card-name {
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--ink);
+  max-width: 64px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 2px 2px;
+}
+.marker-tail {
+  width: 0; height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 8px solid #fff;
+  margin-top: -1px;
+  filter: drop-shadow(0 3px 2px rgba(20,20,20,0.12));
+}
+.placement-marker.selected .marker-tail {
+  border-top-color: var(--orange);
+}
+
+.manipulator-panel {
+  position: fixed;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 40;
+  min-width: 380px;
+  max-width: 92vw;
+  overflow: hidden;
+  animation: manip-pop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 1px solid var(--line);
+}
+@keyframes manip-pop {
+  from { opacity: 0; transform: translateX(-50%) translateY(-12px) scale(0.96); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+.manipulator-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.manip-icon-svg {
+  width: 44px; height: 44px;
+  background: #F4F6F8;
+  border-radius: 10px;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+  padding: 4px;
+  overflow: hidden;
+}
+.manip-icon-svg.zone-blauw { background: #EEF4FE; }
+.manip-icon-svg.zone-groen { background: #EBF7F0; }
+.manip-icon-svg.zone-rood { background: #FBEEEE; }
+.manip-icon-svg.zone-geel { background: #FCF6E1; }
+.manip-icon-svg.zone-oranje { background: #FFF1EB; }
+.manip-icon-svg svg {
+  width: 100%; height: 100%;
+}
+.manip-titles { flex: 1; min-width: 0; }
+.manip-titles h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.manip-titles p {
+  font-size: 0.78rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.status-ok { background: var(--green); box-shadow: 0 0 0 3px rgba(34,197,94,0.18); }
+.status-warn { background: var(--orange); box-shadow: 0 0 0 3px rgba(240,90,40,0.18); }
+.manip-close {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: #F4F4F5;
+  color: var(--ink-2);
+  display: grid; place-items: center;
+  transition: background 0.15s;
+}
+.manip-close:hover { background: #E5E5E5; }
+.manip-delete {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: #FBEEEE;
+  color: var(--red);
+  display: grid; place-items: center;
+  transition: background 0.15s;
+  margin-right: 2px;
+}
+.manip-delete:hover { background: var(--red); color: #fff; }
+
+.manipulator-body {
+  display: flex;
+  padding: 14px 16px 16px;
+  gap: 16px;
+}
+.manip-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.manip-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.manip-label #manip-rotation {
+  background: var(--orange-soft);
+  color: var(--orange);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.manip-divider {
+  width: 1px;
+  background: var(--line);
+}
+.dpad {
+  display: grid;
+  grid-template-columns: 32px 32px 32px;
+  grid-template-rows: 32px 32px 32px;
+  gap: 4px;
+}
+.dpad-btn {
+  background: #F4F4F5;
+  border-radius: 8px;
+  color: var(--ink);
+  display: grid; place-items: center;
+  transition: all 0.1s;
+}
+.dpad-btn:hover { background: var(--orange-soft); color: var(--orange); }
+.dpad-btn:active { transform: scale(0.92); }
+.dpad-btn[data-move="up"]    { grid-column: 2; grid-row: 1; }
+.dpad-btn[data-move="left"]  { grid-column: 1; grid-row: 2; }
+.dpad-btn[data-move="right"] { grid-column: 3; grid-row: 2; }
+.dpad-btn[data-move="down"]  { grid-column: 2; grid-row: 3; }
+.dpad-center {
+  grid-column: 2; grid-row: 2;
+  background: #FFF;
+  border-radius: 4px;
+  border: 1px dashed var(--line);
+}
+.rotate-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rot-btn {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  background: #F4F4F5;
+  color: var(--ink);
+  display: grid; place-items: center;
+  transition: all 0.1s;
+}
+.rot-btn:hover { background: var(--orange-soft); color: var(--orange); }
+.rot-btn:active { transform: scale(0.92); }
+.rot-snap {
+  background: var(--orange-soft);
+  color: var(--orange);
+  font-weight: 700;
+  font-size: 1rem;
+}
+.rot-snap:hover { background: var(--orange); color: #fff; }
+
+.toast {
+  position: fixed;
+  bottom: 110px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: #fff;
+  padding: 12px 22px;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  font-size: 0.9rem;
+  z-index: 200;
+  box-shadow: var(--shadow-lg);
+  animation: toast-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translate(-50%, 20px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.sync-indicator {
+  position: fixed;
+  top: 92px;
+  right: 32px;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(8px);
+  padding: 6px 12px 6px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink-2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: var(--shadow-sm);
+  z-index: 11;
+  animation: sync-in 0.25s ease, sync-out 0.4s ease 1.4s forwards;
+}
+.sync-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 3px rgba(34,197,94,0.2);
+  animation: sync-pulse 0.6s ease;
+}
+@keyframes sync-in { from { opacity: 0; transform: translateY(-6px); } }
+@keyframes sync-out { to { opacity: 0; transform: translateY(-6px); } }
+@keyframes sync-pulse { 0% { transform: scale(0.5); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+
+@media (max-width: 760px) {
+  .top-bar { padding: 18px 18px 14px; }
+  .date-block h1 { font-size: 1.4rem; }
+  .legend {
+    bottom: 110px;
+    left: 16px;
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    min-width: 0;
+  }
+  .legend-item { font-size: 0.85rem; gap: 8px; }
+  .zone-nav { bottom: 24px; min-width: 240px; }
+  .fab-stack { bottom: 24px; right: 16px; }
+  .info-grid { grid-template-columns: 1fr; }
+  .info-3d { padding: 24px; min-height: 240px; }
+  .info-content { padding: 24px 22px; }
+  .info-title { font-size: 1.5rem; }
+  .modal-panel { padding: 28px 20px 20px; }
+  .drawer-card { width: 110px; height: 100px; }
+}
+
+</style>
+</head>
+<body>
+
+<div id="scene-wrap">
+  <canvas id="canvas3d"></canvas>
+  <div id="scene-loader" class="loader">
+    <div class="spinner"></div>
+    <p>3D omgeving laden…</p>
+  </div>
+</div>
+
+<header class="top-bar">
+  <div class="date-block">
+    <h1 id="date-text">Woensdag 20 mei</h1>
+    <span id="time-text">11:57</span>
+  </div>
+  <div class="user-block">
+    <span id="user-name" class="hidden"></span>
+    <button id="auth-btn" class="auth-btn" aria-label="Aanmelden">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+    </button>
+  </div>
+</header>
+
+<aside class="legend" id="legend">
+  <div class="legend-item" data-zone="blauw"><span class="dot" style="background:#3B82F6"></span>Blauw Verspaning</div>
+  <div class="legend-item" data-zone="groen"><span class="dot" style="background:#22C55E"></span>Groen Montage</div>
+  <div class="legend-item" data-zone="rood"><span class="dot" style="background:#EF4444"></span>Rood Lassen</div>
+  <div class="legend-item" data-zone="geel"><span class="dot" style="background:#F5C518"></span>Geel CNC</div>
+  <div class="legend-item" data-zone="oranje"><span class="dot" style="background:#F97316"></span>Oranje Magazijn</div>
+</aside>
+
+<nav class="zone-nav">
+  <button id="zone-prev" class="zone-arrow" aria-label="Vorige zone">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
+  <div class="zone-label">
+    <span id="zone-pin" class="zone-pin hidden">📍</span>
+    <span id="zone-text">Algemeen overzicht</span>
+  </div>
+  <button id="zone-next" class="zone-arrow" aria-label="Volgende zone">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+  </button>
+</nav>
+
+<div class="fab-stack">
+  <button id="edit-mode-btn" class="fab fab-edit hidden" aria-label="Bewerkmodus">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+  </button>
+  <button id="menu-btn" class="fab fab-menu" aria-label="Menu">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+</div>
+
+<div id="list-modal" class="modal hidden" role="dialog" aria-label="Machine-overzicht">
+  <div class="modal-panel list-panel">
+    <button class="modal-close" data-close="list-modal" aria-label="Sluiten">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+    </button>
+    <h2 class="modal-title">List</h2>
+    <div class="zone-switcher">
+      <button id="list-prev" class="zone-arrow ghost" aria-label="Vorige zone">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div class="list-zone-label">
+        <span id="list-zone-pin" class="zone-pin hidden">📍</span>
+        <span id="list-zone-text">Algemeen overzicht</span>
+      </div>
+      <button id="list-next" class="zone-arrow ghost" aria-label="Volgende zone">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+    <div class="machine-list" id="machine-list">
+    </div>
+  </div>
+</div>
+
+<div id="info-modal" class="modal hidden" role="dialog" aria-label="Machine-info">
+  <div class="info-panel">
+    <span class="live3d-badge">● LIVE 3D</span>
+    <button class="modal-close info-close" data-close="info-modal" aria-label="Sluiten">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="info-grid">
+      <div class="info-3d">
+        <canvas id="info-canvas-3d" class="info-canvas"></canvas>
+        <div class="info-3d-loader hidden" id="info-3d-loader">
+          <div class="spinner"></div>
+          <span>3D-model laden…</span>
+        </div>
+        <div class="info-3d-fallback hidden" id="info-3d-fallback"></div>
+        <span class="rotate-hint">Klik &amp; sleep om te draaien</span>
+        <span class="info-zone-tag" id="info-zone-tag">Blauw verspaning</span>
+      </div>
+      <div class="info-content">
+        <p class="info-eyebrow">Info</p>
+        <h2 class="info-title" id="info-title">Freesmachine 1</h2>
+        <div class="info-tabs">
+          <button class="info-tab active" data-tab="veiligheid">
+            <span class="tab-icon">🛡️</span><span>Veiligheid</span>
+          </button>
+          <button class="info-tab" data-tab="handleiding">
+            <span class="tab-icon">📖</span><span>Handleiding</span>
+          </button>
+          <button class="info-tab" data-tab="controle">
+            <span class="tab-icon">📋</span><span>Controle</span>
+          </button>
+          <button class="info-tab" data-tab="smering">
+            <span class="tab-icon">🛢️</span><span>Smering</span>
+          </button>
+        </div>
+        <div class="info-body" id="info-body">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="login-modal" class="modal hidden" role="dialog" aria-label="Aanmelden">
+  <div class="login-panel">
+    <div class="login-logo">EMG<br/>MORE</div>
+    <h2 class="login-title">Aanmelden</h2>
+    <p class="login-subtitle">Werkplaats beheer</p>
+    <label class="form-label">Gebruikersnaam
+      <input id="login-user" type="text" placeholder="admin / leerkracht" autocomplete="off" />
+    </label>
+    <label class="form-label">Wachtwoord
+      <input id="login-pass" type="password" placeholder="••••••" />
+    </label>
+    <p id="login-error" class="login-error hidden">Onjuiste gebruikersnaam of wachtwoord.</p>
+    <button id="login-submit" class="btn-primary">Aanmelden</button>
+    <button class="btn-ghost" data-close="login-modal">Annuleren</button>
+    <p class="login-hint">Demo: <code>Dimitri De Raeve</code> of <code>Niels Verellen</code> · <code>w8tW00rD</code></p>
+  </div>
+</div>
+
+<div id="edit-modal" class="modal hidden" role="dialog" aria-label="Machine bewerken">
+  <div class="modal-panel edit-panel">
+    <button class="modal-close" data-close="edit-modal" aria-label="Sluiten">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <h2 class="edit-title" id="edit-machine-name">Machine bewerken</h2>
+    <p class="edit-sub">
+      <span id="edit-zone-dot" class="dot" style="background:#3B82F6"></span>
+      <span id="edit-zone-name">Blauw verspaning</span>
+      <span class="badge-3d">3D</span>
+    </p>
+    <div class="edit-tabs">
+      <button class="edit-tab active" data-edit-tab="basis">📝 Basisgegevens</button>
+      <button class="edit-tab" data-edit-tab="veiligheid">🛡️ Veiligheid</button>
+      <button class="edit-tab" data-edit-tab="handleiding">📖 Handleiding</button>
+      <button class="edit-tab" data-edit-tab="controle">📋 Controle</button>
+      <button class="edit-tab" data-edit-tab="smering">🔧 Olie / Smering</button>
+    </div>
+    <div class="edit-body" id="edit-body">
+    </div>
+    <div class="edit-actions">
+      <button class="btn-ghost" data-close="edit-modal">Annuleren</button>
+      <button id="edit-save" class="btn-primary">💾 Opslaan</button>
+    </div>
+  </div>
+</div>
+
+<div id="admin-drawer" class="admin-drawer hidden">
+  <div class="drawer-header">
+    <button id="drawer-back" class="drawer-back" aria-label="Terug">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <span class="drawer-hint">Sleep een machine vanuit de lijst naar de 3D omgeving</span>
+    <button id="drawer-toggle" class="drawer-toggle" aria-label="Verberg/toon lijst">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+  </div>
+  <div class="drawer-content">
+    <p class="drawer-section-title">3D MACHINES — SLEEP NAAR DE KAART OM TE PLAATSEN</p>
+    <div id="drawer-machines" class="drawer-machines">
+    </div>
+  </div>
+</div>
+
+<div id="drag-ghost" class="drag-ghost hidden">
+  <svg viewBox="0 0 64 48" width="100%" height="100%">
+    <rect x="8" y="22" width="48" height="18" rx="3" fill="#F05A28"/>
+    <rect x="22" y="10" width="14" height="14" rx="2" fill="#F8B597"/>
+    <rect x="36" y="14" width="14" height="10" rx="2" fill="#F8B597"/>
+  </svg>
+</div>
+
+<div id="placement-markers" class="placement-markers"></div>
+
+<div id="manipulator-panel" class="manipulator-panel hidden">
+  <div class="manipulator-header">
+    <span class="manip-icon-svg" id="manip-machine-icon"></span>
+    <div class="manip-titles">
+      <h3 id="manip-machine-name">Machine</h3>
+      <p id="manip-status">
+        <span class="status-dot status-ok"></span>
+        <span id="manip-status-text">In 3D-scene gevonden</span>
+      </p>
+    </div>
+    <button id="manip-delete" class="manip-delete" aria-label="Verwijderen van kaart" title="Verwijder van kaart">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+    </button>
+    <button id="manip-close" class="manip-close" aria-label="Sluiten">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="manipulator-body">
+    <div class="manip-group">
+      <span class="manip-label">Verplaatsen</span>
+      <div class="dpad">
+        <button class="dpad-btn" data-move="up" title="Naar achteren">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+        </button>
+        <button class="dpad-btn" data-move="left" title="Naar links">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <span class="dpad-center"></span>
+        <button class="dpad-btn" data-move="right" title="Naar rechts">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+        <button class="dpad-btn" data-move="down" title="Naar voren">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="manip-divider"></div>
+    <div class="manip-group">
+      <span class="manip-label">Roteren <span id="manip-rotation">0°</span></span>
+      <div class="rotate-controls">
+        <button class="rot-btn" data-rotate="-15" title="-15°">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+        </button>
+        <button class="rot-btn rot-snap" data-rotate="snap" title="Reset naar 0°">↺</button>
+        <button class="rot-btn" data-rotate="15" title="+15°">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<div id="sync-indicator" class="sync-indicator hidden">
+  <span class="sync-dot"></span>
+  <span>Gesynchroniseerd</span>
+</div>
+
+<script>
+
+const ZONES = {
+  algemeen: {
+    id: 'algemeen',
+    label: 'Algemeen overzicht',
+    color: '#888888',
+    showPin: false,
+    description: 'Totaaloverzicht van de toekomstige mechanische werkplaats. Vijf werkzones, zichtbare looplijnen en veiligheidsafbakening.',
+    safety: [
+      'Volg de gemarkeerde looplijnen — geen kortere wegen door werkzones',
+      'Draag steeds correcte PBM: veiligheidsbril, schoenen S3, gehoorbescherming waar nodig',
+      'Respecteer LOTO/LOTOTO-procedures bij elke onderbreking',
+      'Brandblussers op vaste locaties — niet verplaatsen',
+    ],
+  },
+  blauw: {
+    id: 'blauw',
+    label: 'Blauw verspaning',
+    color: '#3B82F6',
+    showPin: true,
+    description: 'Klassieke verspaningstechnieken: frezen, draaien, slijpen en boren. Magneetveld voor opspanning en meetbank voor controle.',
+  },
+  groen: {
+    id: 'groen',
+    label: 'Groen Montage',
+    color: '#22C55E',
+    showPin: true,
+    description: 'Vier montagetafels met lades voor handgereedschap. Focus op precieze assemblage, demontage en kwaliteitscontrole.',
+  },
+  rood: {
+    id: 'rood',
+    label: 'Rood Lassen',
+    color: '#EF4444',
+    showPin: true,
+    description: 'Lasafdeling met lasrobot, afgescheiden door brand- en lasgordijnen. Strikte regels rond ventilatie en PBM.',
+  },
+  geel: {
+    id: 'geel',
+    label: 'Geel CNC',
+    color: '#F5C518',
+    showPin: true,
+    description: 'CNC-zone met freesbank en draaibank. Werken volgens programma — controle van nulpunt en gereedschapscorrectie verplicht.',
+  },
+  oranje: {
+    id: 'oranje',
+    label: 'Oranje Magazijn',
+    color: '#F97316',
+    showPin: true,
+    description: 'Links de gereedschaps­rekken, rechts een metaalrek met pc-post om onderdelen op te zoeken in het beheersysteem.',
+  },
+};
+
+const ZONE_ORDER = ['algemeen', 'blauw', 'groen', 'rood', 'geel', 'oranje'];
+
+
+const MACHINES = [
+  {
+    id: 'slijp-boren',
+    name: 'slijpmachine voor boren',
+    zone: 'blauw',
+    description: 'Speciale slijpmachine voor het bijslijpen van spiraal- en centerboren. Zorgt voor scherpe boorpunt met juiste tophoek (118°).',
+    veiligheid: {
+      pbm: ['Veiligheidsbril (verplicht)', 'Stofmasker FFP2', 'Gehoorbescherming aanbevolen'],
+      regels: [
+        'Nooit slijpen zonder beschermkap',
+        'Werkstuk vast in opspanning — nooit met de hand vasthouden',
+        'Slijpschijf controleren op barsten vóór gebruik (klanktest)',
+        'Maximaal toerental op de schijf nooit overschrijden',
+      ],
+    },
+    handleiding: {
+      stappen: [
+        'Hoofdschakelaar aan en wacht tot het toerental stabiel is',
+        'Boor in de opspanning plaatsen, hoek op 59° (= halve tophoek)',
+        'Boorpunt licht tegen schijf brengen, met koeling',
+        'Beide snijkanten gelijk slijpen — anders wijkt de boor af',
+        'Controleer met boormal of de hoek correct is',
+      ],
+    },
+    controle: ['Wekelijks: slijpschijf op slijtage', 'Maandelijks: opspanning recht zetten', 'Halfjaarlijks: lagers controleren'],
+    smering: ['Lagers: vetnippel — 2x per jaar (KP2K-30)', 'Opspanningsdraad: dunne olie (ISO VG 32) — wekelijks 1 druppel'],
+  },
+  {
+    id: 'slijp-frezen',
+    name: 'slijpmachine voor frezen',
+    zone: 'blauw',
+    description: 'Universele slijpmachine voor het opnieuw aanzetten van frezen, beitels en speciale gereedschappen. Voorzien van precisie-opspanning.',
+    veiligheid: {
+      pbm: ['Veiligheidsbril', 'Lederen handschoenen NIET gebruiken bij draaiende schijf', 'Stofafzuiging aan'],
+      regels: [
+        'Schijven controleren op haarscheuren',
+        'Werkstuk koel houden — gloeien = uitharden vernield',
+        'Vonken niet richting brandbaar materiaal',
+      ],
+    },
+    handleiding: {
+      stappen: [
+        'Selecteer de juiste opspanning voor het type frees',
+        'Stel de slijphoek in volgens fresentekening',
+        'Slijpschijf in koelvloeistof brengen voor stationair toerental',
+        'Lichte aandrukkracht — meerdere passes',
+      ],
+    },
+    controle: ['Wekelijks: koelmiddelniveau', 'Maandelijks: opspanrondheid meten met meetklok'],
+    smering: ['Hoofdspil: olie ISO VG 46 — controle elke 200 bedrijfsuren', 'Geleidingen: lineair vet — wekelijks'],
+  },
+  {
+    id: 'frees-1',
+    name: 'Freesmachine 1',
+    zone: 'blauw',
+    description: 'Conventionele kolomfreesmachine voor opleidingsdoeleinden. Geschikt voor vlakfrezen, sleuven en eenvoudige contouren.',
+    veiligheid: {
+      pbm: ['Veiligheidsbril', 'Veiligheidsschoenen S3', 'Geen losse kledij, lange haren vast'],
+      regels: [
+        'Spaanafzuiging steeds aan',
+        'Nooit met de hand spanen verwijderen — gebruik haak',
+        'Werkstuk volledig opspannen vóór bewerking',
+        'Toerental afstemmen op materiaal en freesdiameter',
+      ],
+    },
+    handleiding: {
+      stappen: [
+        'Hoofdschakelaar aan, smering activeren',
+        'Frees opspannen, uitlijning controleren',
+        'Werkstuk centreren en stevig vastzetten',
+        'Nulpunt instellen via kantentaster',
+        'Toerental en voeding selecteren volgens snijdiagram',
+        'Eerste passage minimaal — voel en hoor de machine',
+      ],
+    },
+    controle: ['Dagelijks: oliepeil hoofdspil', 'Wekelijks: koelvloeistof reinigen', 'Maandelijks: aanslagen herkalibreren'],
+    smering: ['Hoofdspil: ISO VG 32 — peilen vóór elke shift', 'X/Y/Z-geleidingen: automatische smering — vetreservoir maandelijks bijvullen', 'Spilkop: vet KP2K — halfjaarlijks'],
+  },
+  {
+    id: 'frees-2',
+    name: 'Freesmachine 2',
+    zone: 'blauw',
+    description: 'Identiek aan Freesmachine 1, opgesteld als parallelpost voor klasoefeningen.',
+    veiligheid: {
+      pbm: ['Veiligheidsbril', 'Veiligheidsschoenen S3'],
+      regels: ['Zie Freesmachine 1', 'Per machine 1 student aan de bediening'],
+    },
+    handleiding: { stappen: ['Identiek aan Freesmachine 1 — zie procedure aldaar.'] },
+    controle: ['Volg het schema van Freesmachine 1'],
+    smering: ['Volg het schema van Freesmachine 1'],
+  },
+  {
+    id: 'frees-3',
+    name: 'Freesmachine 3',
+    zone: 'blauw',
+    description: 'Conventionele kolomfreesmachine, opstelling identiek aan posten 1 & 2.',
+    veiligheid: { pbm: ['Veiligheidsbril', 'Veiligheidsschoenen S3'], regels: ['Zie Freesmachine 1'] },
+    handleiding: { stappen: ['Volg de standaardprocedure voor freesmachines.'] },
+    controle: ['Volg het standaardschema'],
+    smering: ['Volg het standaardschema'],
+  },
+  {
+    id: 'frees-4',
+    name: 'Freesmachine 4',
+    zone: 'blauw',
+    description: 'Conventionele kolomfreesmachine, vierde en laatste post in de verspaningsrij.',
+    veiligheid: { pbm: ['Veiligheidsbril', 'Veiligheidsschoenen S3'], regels: ['Zie Freesmachine 1'] },
+    handleiding: { stappen: ['Volg de standaardprocedure voor freesmachines.'] },
+    controle: ['Volg het standaardschema'],
+    smering: ['Volg het standaardschema'],
+  },
+  {
+    id: 'radiaalboor',
+    name: 'Radiaalboor',
+    zone: 'blauw',
+    description: 'Radiaalboormachine voor grote werkstukken. Verstelbare arm zodat het werkstuk niet hoeft te bewegen — alleen de boorkop.',
+    veiligheid: {
+      pbm: ['Veiligheidsbril', 'Schoenen S3', 'Geen handschoenen bij draaiende spil'],
+      regels: [
+        'Werkstuk vastklemmen — NOOIT met de hand vasthouden',
+        'Boor opspannen tot aanslag',
+        'Vóór starten: arm vergrendelen',
+      ],
+    },
+    handleiding: { stappen: [
+      'Arm en kolom positioneren boven het boorpunt',
+      'Beide vergrendelingen aandraaien',
+      'Toerental kiezen volgens boor­diameter en materiaal',
+      'Met de hand voeden — voel weerstand',
+    ] },
+    controle: ['Dagelijks: vergrendeling arm/kolom', 'Maandelijks: spie­spel meten'],
+    smering: ['Arm: vet — 1x per maand', 'Spilkop: olie ISO VG 32 — peilen wekelijks'],
+  },
+  {
+    id: 'draaibank-1',
+    name: 'Draaibank Harrison',
+    zone: 'blauw',
+    description: 'Conventionele draaibank voor cilindrisch, conisch en schroefdraaddraaien. Werkpaard van de verspaningszone.',
+    veiligheid: {
+      pbm: ['Veiligheidsbril', 'Geen handschoenen', 'Spaanscherm naar beneden'],
+      regels: [
+        'Spankop met spansleutel — sleutel ALTIJD uitnemen vóór starten',
+        'Werkstuk uitsteek max. 3× diameter zonder steunpop',
+        'Spanen verwijderen met haak, machine uit',
+      ],
+    },
+    handleiding: { stappen: [
+      'Werkstuk in spankop, uitlijning meten',
+      'Beitel opspannen op centerhoogte',
+      'Toerental kiezen — Vc = (π × d × n) / 1000',
+      'Voeding instellen, koelmiddel aan',
+      'Eerste snede licht — controleer maatvoering',
+    ] },
+    controle: ['Dagelijks: oliepeil leibanen', 'Wekelijks: spankop reinigen', 'Maandelijks: hartlijn uitlijnen'],
+    smering: ['Spilkop: ISO VG 68 — peilen vóór elke shift', 'Leibanen: automatisch — reservoir maandelijks', 'Loopspil: vet KP2K — halfjaarlijks'],
+  },
+  {
+    id: 'slijpmachine',
+    name: 'Slijpmachine',
+    zone: 'blauw',
+    description: 'Universele tafelslijpmachine voor het scherpen en bijwerken van handgereedschap.',
+    veiligheid: {
+      pbm: ['Veiligheidsbril (verplicht)', 'Stofmasker FFP2'],
+      regels: ['Beschermkap controleren', 'Schijf-tot-steun max. 3 mm', 'Werkstuk koelen — niet laten blauwkleuren'],
+    },
+    handleiding: { stappen: ['Schijf op snelheid laten komen', 'Lichte druk, werkstuk bewegen', 'Regelmatig dompelen in koelwater'] },
+    controle: ['Maandelijks: schijven richten', 'Halfjaarlijks: schijfwissel'],
+    smering: ['Lagers: gesloten — geen onderhoud', 'Steunarm: dunne olie wekelijks'],
+  },
+
+  {
+    id: 'montagetafel-1',
+    name: 'Montagetafel 1',
+    zone: 'groen',
+    description: 'Werkbank met lades voor handgereedschap, schroefverbindingen en kleine montagewerken. Antistatische mat aanwezig.',
+    veiligheid: {
+      pbm: ['Veiligheidsbril bij hamertaken', 'ESD-polsband bij elektronica'],
+      regels: ['5S aan het einde van elke shift', 'Gereedschap op shadow-board terug', 'Geen vetten of olie op de werkmat'],
+    },
+    handleiding: { stappen: ['Werkstuk vastzetten in bankschroef', 'Gebruik momentsleutel voor kritieke verbindingen', 'Markeer afgewerkte stappen op de werkfiche'] },
+    controle: ['Wekelijks: bankschroef-kaken op slijtage', 'Maandelijks: momentsleutel kalibreren'],
+    smering: ['Bankschroef: dunne olie maandelijks', 'Lades-glijders: silicone-spray halfjaarlijks'],
+  },
+  {
+    id: 'montagetafel-2',
+    name: 'Montagetafel 2',
+    zone: 'groen',
+    description: 'Identiek aan Montagetafel 1.',
+    veiligheid: { pbm: ['Zie Montagetafel 1'], regels: ['Zie Montagetafel 1'] },
+    handleiding: { stappen: ['Zie Montagetafel 1'] },
+    controle: ['Zie Montagetafel 1'],
+    smering: ['Zie Montagetafel 1'],
+  },
+  {
+    id: 'montagetafel-3',
+    name: 'Montagetafel 3',
+    zone: 'groen',
+    description: 'Identiek aan Montagetafel 1.',
+    veiligheid: { pbm: ['Zie Montagetafel 1'], regels: ['Zie Montagetafel 1'] },
+    handleiding: { stappen: ['Zie Montagetafel 1'] },
+    controle: ['Zie Montagetafel 1'],
+    smering: ['Zie Montagetafel 1'],
+  },
+  {
+    id: 'montagetafel-4',
+    name: 'Montagetafel 4',
+    zone: 'groen',
+    description: 'Identiek aan Montagetafel 1.',
+    veiligheid: { pbm: ['Zie Montagetafel 1'], regels: ['Zie Montagetafel 1'] },
+    handleiding: { stappen: ['Zie Montagetafel 1'] },
+    controle: ['Zie Montagetafel 1'],
+    smering: ['Zie Montagetafel 1'],
+  },
+  {
+    id: 'meetbank',
+    name: 'Meetbank',
+    zone: 'groen',
+    description: 'Tafel met meetbank en digitaal bord. Voor kwaliteitscontrole van werkstukken na verspaning of montage.',
+    veiligheid: {
+      pbm: ['Geen specifieke PBM — handen schoon en droog'],
+      regels: ['Geen drinken op de meetbank', 'Meetinstrumenten in foudraal terug', 'Granieten tafel niet beschadigen'],
+    },
+    handleiding: { stappen: [
+      'Werkstuk reinigen van bramen en koelvloeistof',
+      'Werkstuk op temperatuur laten komen (20°C)',
+      'Meetinstrument kalibreren met blokje',
+      'Meting registreren op digitaal bord',
+    ] },
+    controle: ['Maandelijks: meetinstrumenten herkalibreren', 'Halfjaarlijks: granieten plaat egaliseren'],
+    smering: ['Geen smering — alle instrumenten droog houden'],
+  },
+
+  {
+    id: 'lasrobot',
+    name: 'Lasrobot',
+    zone: 'rood',
+    description: 'Robotgestuurde lasinstallatie voor MIG/MAG. Programmeerbaar voor herhaalbare productiestukken — ideaal voor demonstraties.',
+    veiligheid: {
+      pbm: ['Auto-darkening lashelm', 'Lasjas leder', 'Veiligheidsschoenen', 'Niet kijken naar de boog — straling!'],
+      regels: [
+        'Lasgordijnen ALTIJD dicht',
+        'Afzuiging maximaal',
+        'Niemand binnen de robotcel tijdens beweging',
+        'Noodstop binnen handbereik',
+      ],
+    },
+    handleiding: { stappen: [
+      'Inlogprocedure op robot-controller',
+      'Programma selecteren of teach-in uitvoeren',
+      'Gas en draadaanvoer controleren',
+      'Eerste cycle in single-step modus',
+      'Continue cycle pas na visuele controle',
+    ] },
+    controle: ['Dagelijks: contactbuis en gasmondstuk', 'Wekelijks: draaddoorvoer reinigen', 'Maandelijks: robotgeleidingen kalibreren'],
+    smering: ['Robotgewrichten: smeerprogramma volgens fabrikant — 6 maandelijks', 'Draadtoevoer: niet smeren — droog houden'],
+  },
+  {
+    id: 'lastafel',
+    name: 'Lastafel',
+    zone: 'rood',
+    description: 'Stalen lastafel met opspanopeningen en aardklem. Voor TIG/MIG/elektrode-lassen onder begeleiding.',
+    veiligheid: {
+      pbm: ['Lashelm', 'Lasjas + handschoenen leder', 'Schoenen S3'],
+      regels: ['Lasgordijn dicht', 'Afzuiging direct boven werkstuk', 'Brandblusser binnen 2m', 'Geen brandbaar in zone'],
+    },
+    handleiding: { stappen: [
+      'Werkstuk reinigen en opspannen',
+      'Aardklem direct op werkstuk',
+      'Parameters kiezen volgens materiaal en dikte',
+      'Eerst hechtlassen, dan doorlassen',
+    ] },
+    controle: ['Wekelijks: aardklem op corrosie', 'Maandelijks: tafelpoten en wielen'],
+    smering: ['Spanmiddelen: lichte olie — wekelijks', 'Wielen: vet — halfjaarlijks'],
+  },
+
+  {
+    id: 'cnc-frees',
+    name: 'CNC Freesbank',
+    zone: 'geel',
+    description: 'Computer-gestuurde freesbank (3-assig) voor precieze productie volgens G-code. Toolwissel via automatische tafel.',
+    veiligheid: {
+      pbm: ['Veiligheidsbril', 'Schoenen S3', 'Gehoorbescherming bij open deur'],
+      regels: [
+        'Deur ALTIJD dicht tijdens cyclus',
+        'Dry-run vóór elke nieuwe job',
+        'Nulpunt controleren met kantentaster',
+        'Spanen pas verwijderen na "cycle stop"',
+      ],
+    },
+    handleiding: { stappen: [
+      'Werkstuk vastspannen in machineklem',
+      'Gereedschappen in revolver — lengtes meten',
+      'G-code laden, simulatie draaien',
+      'Werknulpunt instellen (G54)',
+      'Single-block test, dan automatische cyclus',
+    ] },
+    controle: ['Dagelijks: koelmiddelconcentratie meten', 'Wekelijks: gereedschapsmaten controleren', 'Maandelijks: lineaire metingen op cirkeltest'],
+    smering: ['Hoofdspil: olienevel — automatisch, peilen wekelijks', 'Lineaire geleidingen: centraal vetsmeer­systeem', 'Toolwisselaar: speciaal vet halfjaarlijks'],
+  },
+  {
+    id: 'cnc-draai',
+    name: 'CNC Draaibank',
+    zone: 'geel',
+    description: 'Computer-gestuurde draaibank met live tooling. Voor productie van rotatiesymmetrische onderdelen met hoge precisie.',
+    veiligheid: {
+      pbm: ['Veiligheidsbril', 'Schoenen S3'],
+      regels: ['Bij chuck-test: stevige opspanning verifiëren', 'Spaanafvoer vrij houden', 'Deur dicht tijdens cyclus'],
+    },
+    handleiding: { stappen: [
+      'Materiaal in spankop, uitsteek controleren',
+      'Gereedschappen in revolver, offsets meten',
+      'Programma simuleren, daarna single block',
+      'Eerste werkstuk volledig meten — daarna serie',
+    ] },
+    controle: ['Dagelijks: koelmiddel en spaanafvoer', 'Wekelijks: spankop reinigen en smeren'],
+    smering: ['Spilkop: ISO VG 68 — gesloten systeem', 'Spankop: speciaal spankopvet wekelijks', 'Revolverkop: olienevel automatisch'],
+  },
+
+  {
+    id: 'rekken-links',
+    name: 'Gereedschapsrekken',
+    zone: 'oranje',
+    description: 'Linker zijde van het magazijn: rekken met handgereedschap, meetinstrumenten en verbruiksartikelen.',
+    veiligheid: {
+      pbm: ['Schoenen S3'],
+      regels: ['Zware items op ooghoogte of lager', 'Ladders correct gebruiken', 'Materiaal niet stapelen boven 1,80m'],
+    },
+    handleiding: { stappen: ['Uitlening registreren op pc-post', 'Item terug op correcte locatie volgens label', 'Beschadiging direct melden'] },
+    controle: ['Maandelijks: stockcontrole vs systeem', 'Halfjaarlijks: rekken op stabiliteit'],
+    smering: ['Geen — droog magazijn'],
+  },
+  {
+    id: 'metaalrek',
+    name: 'Metaalrek',
+    zone: 'oranje',
+    description: 'Rechter zijde van het magazijn: metaalrek voor staven, profielen en platen. Geordend per materiaal en afmeting.',
+    veiligheid: {
+      pbm: ['Schoenen S3', 'Handschoenen bij scherpe kanten', 'Helm bij ophaaltransport'],
+      regels: ['Lang materiaal met 2 personen', 'Stalen banden veilig knippen', 'Hijsmiddelen onder de WLL gebruiken'],
+    },
+    handleiding: { stappen: ['Materiaal opzoeken in pc-systeem', 'Uitname registreren met QR-scan', 'Restmateriaal labelen en teruggeven'] },
+    controle: ['Maandelijks: rek-haken op vervorming', 'Halfjaarlijks: belasting-­certificaat'],
+    smering: ['Geen — droog houden'],
+  },
+  {
+    id: 'pc-post',
+    name: 'PC-post magazijn',
+    zone: 'oranje',
+    description: 'Computerpost voor het opzoeken van onderdelen, registreren van uitname en raadplegen van technische fiches.',
+    veiligheid: { pbm: ['Geen specifieke PBM'], regels: ['Geen drinken bij de pc', 'Steeds afmelden bij vertrek'] },
+    handleiding: { stappen: ['Inloggen met studentenaccount', 'Onderdeel opzoeken via zoekbalk of QR-scan', 'Uitname bevestigen', 'Bij retour: scan + locatie verifiëren'] },
+    controle: ['Maandelijks: software-updates', 'Halfjaarlijks: scanner kalibreren'],
+    smering: ['Niet van toepassing'],
+  },
+];
+const USERS = {
+  'dimitri de raeve': { name: 'Dimitri De Raeve', password: 'w8tW00rD', role: 'admin' },
+  'niels verellen': { name: 'Niels Verellen', password: 'w8tW00rD', role: 'admin' },
+};
+
+window.WERKPLAATS_DATA = { ZONES, ZONE_ORDER, MACHINES, USERS };
+
+</script>
+<script type="module">
+import { Application } from 'https://unpkg.com/@splinetool/runtime@1.9.59/build/runtime.js';
+import * as THREE from 'https://unpkg.com/three@0.159.0/build/three.module.js';
+
+const { ZONES, ZONE_ORDER, MACHINES, USERS } = window.WERKPLAATS_DATA;
+const MACHINE_TYPE = {
+  'slijp-boren': 'slijp',
+  'slijp-frezen': 'slijp',
+  'frees-1': 'frees', 'frees-2': 'frees', 'frees-3': 'frees', 'frees-4': 'frees',
+  'radiaalboor': 'radiaal',
+  'draaibank-1': 'draai',
+  'slijpmachine': 'slijp',
+  'montagetafel-1': 'montage', 'montagetafel-2': 'montage',
+  'montagetafel-3': 'montage', 'montagetafel-4': 'montage',
+  'meetbank': 'meet',
+  'lasrobot': 'las-robot',
+  'lastafel': 'las-tafel',
+  'cnc-frees': 'cnc-frees',
+  'cnc-draai': 'cnc-draai',
+  'rekken-links': 'rek',
+  'metaalrek': 'rek',
+  'pc-post': 'pc',
+};
+const MACHINE_SVG = {
+  frees: `<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+    <rect x="6" y="84" width="22" height="14" fill="#E8E8EA"/>
+    <rect x="92" y="84" width="22" height="14" fill="#E8E8EA"/>
+    <rect x="6" y="76" width="108" height="10" fill="#D8DCE0"/>
+    <rect x="14" y="14" width="28" height="66" fill="#1F2940"/>
+    <rect x="14" y="14" width="28" height="3" fill="#2D3849"/>
+    <rect x="10" y="8" width="36" height="8" fill="#E8DFC9"/>
+    <rect x="10" y="8" width="36" height="2" fill="#D8CFB5"/>
+    <rect x="17" y="20" width="22" height="6" fill="#2D3849"/>
+    <polygon points="20,22.5 22,21 24,22.5 23,24.5 21,24.5" fill="#E84545"/>
+    <polygon points="25,22.5 27,21 29,22.5 28,24.5 26,24.5" fill="#F5C518"/>
+    <polygon points="30,22.5 32,21 34,22.5 33,24.5 31,24.5" fill="#22C55E"/>
+    <polygon points="35,22.5 37,21 39,22.5 38,24.5 36,24.5" fill="#3B82F6"/>
+    <rect x="42" y="20" width="60" height="18" fill="#1F2940"/>
+    <rect x="42" y="20" width="60" height="2" fill="#2D3849"/>
+    <rect x="68" y="38" width="12" height="22" fill="#9CA3AF"/>
+    <rect x="64" y="58" width="20" height="4" fill="#B5BAC2"/>
+    <rect x="20" y="34" width="16" height="3" fill="#9CA3AF"/>
+    <circle cx="22" cy="48" r="3" fill="#E8E8EA"/>
+    <circle cx="22" cy="48" r="1" fill="#9CA3AF"/>
+    <circle cx="32" cy="48" r="3" fill="#E8E8EA"/>
+    <circle cx="32" cy="48" r="1" fill="#9CA3AF"/>
+    <rect x="20" y="58" width="3" height="14" fill="#E8E8EA"/>
+    <rect x="32" y="58" width="3" height="14" fill="#E8E8EA"/>
+    <rect x="42" y="66" width="60" height="10" fill="#E8DFC9"/>
+    <rect x="42" y="66" width="60" height="2" fill="#D8CFB5"/>
+    <rect x="62" y="62" width="22" height="6" fill="#1F2940"/>
+  </svg>`,
+
+  draai: `<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+    <rect x="6" y="84" width="22" height="14" fill="#E8E8EA"/>
+    <rect x="92" y="84" width="22" height="14" fill="#E8E8EA"/>
+    <rect x="6" y="76" width="108" height="10" fill="#D8DCE0"/>
+    <rect x="12" y="36" width="98" height="46" fill="#1F2940"/>
+    <rect x="12" y="36" width="98" height="3" fill="#2D3849"/>
+    <rect x="12" y="28" width="34" height="40" fill="#9CA3AF"/>
+    <rect x="12" y="28" width="34" height="2" fill="#B5BAC2"/>
+    <rect x="14" y="30" width="30" height="5" fill="#2D3849"/>
+    <polygon points="18,32 20.5,30.5 22,32.5 21,34 19,34" fill="#E84545"/>
+    <polygon points="23.5,32 26,30.5 27.5,32.5 26.5,34 24.5,34" fill="#F5C518"/>
+    <polygon points="29,32 31.5,30.5 33,32.5 32,34 30,34" fill="#22C55E"/>
+    <polygon points="34.5,32 37,30.5 38.5,32.5 37.5,34 35.5,34" fill="#3B82F6"/>
+    <circle cx="22" cy="42" r="2" fill="#E8E8EA"/>
+    <circle cx="32" cy="42" r="2" fill="#E8E8EA"/>
+    <rect x="20" y="48" width="14" height="2" fill="#E8E8EA"/>
+    <rect x="20" y="54" width="3" height="6" fill="#E8E8EA"/>
+    <rect x="26" y="54" width="3" height="6" fill="#E8E8EA"/>
+    <rect x="32" y="54" width="3" height="6" fill="#E8E8EA"/>
+    <rect x="46" y="20" width="28" height="18" fill="#E8DFC9"/>
+    <rect x="46" y="20" width="28" height="3" fill="#D8CFB5"/>
+    <rect x="44" y="48" width="56" height="6" fill="#0F1525"/>
+    <rect x="70" y="32" width="36" height="44" fill="#1A1F2E"/>
+    <circle cx="82" cy="46" r="6" fill="#E8E8EA"/>
+    <circle cx="82" cy="46" r="2" fill="#9CA3AF"/>
+    <circle cx="92" cy="54" r="5" fill="#E8E8EA"/>
+    <circle cx="92" cy="54" r="1.5" fill="#9CA3AF"/>
+    <circle cx="82" cy="60" r="3.5" fill="#E8E8EA"/>
+    <rect x="100" y="40" width="14" height="3" fill="#9CA3AF"/>
+    <circle cx="114" cy="41.5" r="3" fill="#E8E8EA"/>
+    <rect x="58" y="68" width="3" height="14" fill="#9CA3AF"/>
+    <polygon points="56,68 63,68 61,72 58,72" fill="#B5BAC2"/>
+    <rect x="68" y="62" width="22" height="3" fill="#9CA3AF"/>
+  </svg>`,
+
+  slijp: `<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+    <rect x="14" y="84" width="22" height="14" fill="#E8E8EA"/>
+    <rect x="84" y="84" width="22" height="14" fill="#E8E8EA"/>
+    <rect x="10" y="76" width="100" height="10" fill="#D8DCE0"/>
+    <rect x="30" y="32" width="60" height="46" fill="#1F2940"/>
+    <rect x="30" y="32" width="60" height="3" fill="#2D3849"/>
+    <rect x="26" y="22" width="68" height="12" fill="#E8DFC9"/>
+    <rect x="26" y="22" width="68" height="3" fill="#D8CFB5"/>
+    <rect x="34" y="40" width="52" height="6" fill="#2D3849"/>
+    <polygon points="40,43 42,41.5 44,43 43,45 41,45" fill="#E84545"/>
+    <polygon points="48,43 50,41.5 52,43 51,45 49,45" fill="#F5C518"/>
+    <polygon points="56,43 58,41.5 60,43 59,45 57,45" fill="#22C55E"/>
+    <polygon points="64,43 66,41.5 68,43 67,45 65,45" fill="#3B82F6"/>
+    <circle cx="18" cy="52" r="14" fill="#1A1F2E"/>
+    <circle cx="18" cy="52" r="11" fill="#9CA3AF"/>
+    <circle cx="18" cy="52" r="3" fill="#1F2940"/>
+    <circle cx="18" cy="52" r="1" fill="#E8E8EA"/>
+    <circle cx="102" cy="52" r="14" fill="#1A1F2E"/>
+    <circle cx="102" cy="52" r="11" fill="#9CA3AF"/>
+    <circle cx="102" cy="52" r="3" fill="#1F2940"/>
+    <circle cx="102" cy="52" r="1" fill="#E8E8EA"/>
+    <rect x="38" y="58" width="44" height="14" fill="#1A1F2E"/>
+    <rect x="42" y="62" width="36" height="6" fill="#9CA3AF"/>
+    <circle cx="50" cy="65" r="1.4" fill="#22C55E"/>
+    <circle cx="58" cy="65" r="1.4" fill="#E84545"/>
+  </svg>`,
+
+  radiaal: `<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+    <rect x="8" y="86" width="34" height="12" fill="#E8E8EA"/>
+    <rect x="8" y="76" width="34" height="10" fill="#D8DCE0"/>
+    <rect x="16" y="6" width="22" height="78" fill="#1F2940"/>
+    <rect x="16" y="6" width="22" height="3" fill="#2D3849"/>
+    <rect x="38" y="14" width="62" height="10" fill="#1F2940"/>
+    <rect x="38" y="14" width="62" height="2" fill="#2D3849"/>
+    <rect x="78" y="24" width="20" height="22" fill="#1A1F2E"/>
+    <rect x="80" y="26" width="16" height="3" fill="#9CA3AF"/>
+    <rect x="84" y="46" width="8" height="14" fill="#9CA3AF"/>
+    <rect x="82" y="58" width="12" height="3" fill="#B5BAC2"/>
+    <rect x="60" y="76" width="40" height="10" fill="#E8DFC9"/>
+    <rect x="60" y="76" width="40" height="2" fill="#D8CFB5"/>
+    <rect x="72" y="68" width="16" height="8" fill="#1F2940"/>
+    <rect x="20" y="14" width="14" height="6" fill="#2D3849"/>
+    <circle cx="23" cy="17" r="1.3" fill="#E84545"/>
+    <circle cx="27" cy="17" r="1.3" fill="#F5C518"/>
+    <circle cx="31" cy="17" r="1.3" fill="#22C55E"/>
+    <rect x="22" y="30" width="10" height="2" fill="#9CA3AF"/>
+    <rect x="22" y="36" width="6" height="2" fill="#9CA3AF"/>
+    <circle cx="27" cy="50" r="3" fill="#E8E8EA"/>
+    <circle cx="27" cy="50" r="1" fill="#9CA3AF"/>
+    <rect x="38" y="68" width="22" height="4" fill="#1F2940"/>
+  </svg>`,
+
+  montage: `<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+    <rect x="10" y="86" width="6" height="12" fill="#9CA3AF"/>
+    <rect x="104" y="86" width="6" height="12" fill="#9CA3AF"/>
+    <rect x="6" y="34" width="108" height="8" fill="#E8DFC9"/>
+    <rect x="6" y="34" width="108" height="2" fill="#D8CFB5"/>
+    <rect x="6" y="42" width="108" height="3" fill="#D8CFB5"/>
+    <rect x="14" y="45" width="92" height="42" fill="#1F2940"/>
+    <rect x="14" y="45" width="92" height="3" fill="#2D3849"/>
+    <rect x="18" y="50" width="84" height="9" fill="#9CA3AF"/>
+    <rect x="18" y="62" width="84" height="9" fill="#9CA3AF"/>
+    <rect x="18" y="74" width="84" height="9" fill="#9CA3AF"/>
+    <rect x="55" y="53" width="10" height="3" fill="#E8E8EA"/>
+    <rect x="55" y="65" width="10" height="3" fill="#E8E8EA"/>
+    <rect x="55" y="77" width="10" height="3" fill="#E8E8EA"/>
+    <rect x="24" y="22" width="20" height="12" fill="#9CA3AF"/>
+    <rect x="26" y="20" width="16" height="3" fill="#B5BAC2"/>
+    <rect x="50" y="26" width="3" height="8" fill="#9CA3AF"/>
+    <polygon points="48,18 55,18 58,26 45,26" fill="#E8E8EA"/>
+    <rect x="68" y="20" width="22" height="14" fill="#E8DFC9"/>
+    <rect x="68" y="20" width="22" height="3" fill="#D8CFB5"/>
+    <circle cx="96" cy="28" r="3" fill="#E84545"/>
+    <rect x="93" y="22" width="3" height="6" fill="#E8E8EA"/>
+  </svg>`,
+
+  'las-robot': `<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+    <rect x="20" y="84" width="40" height="14" fill="#E8E8EA"/>
+    <rect x="20" y="76" width="40" height="10" fill="#D8DCE0"/>
+    <rect x="28" y="60" width="24" height="18" fill="#1F2940"/>
+    <rect x="28" y="60" width="24" height="3" fill="#2D3849"/>
+    <circle cx="40" cy="60" r="8" fill="#1F2940"/>
+    <circle cx="40" cy="60" r="5" fill="#9CA3AF"/>
+    <rect x="36" y="30" width="10" height="32" fill="#1F2940" transform="rotate(-10 40 46)"/>
+    <circle cx="36" cy="32" r="6" fill="#1F2940"/>
+    <circle cx="36" cy="32" r="3" fill="#9CA3AF"/>
+    <rect x="36" y="28" width="42" height="9" fill="#1F2940" transform="rotate(28 36 32)"/>
+    <circle cx="76" cy="44" r="5" fill="#1F2940"/>
+    <circle cx="76" cy="44" r="2.5" fill="#9CA3AF"/>
+    <rect x="76" y="44" width="6" height="20" fill="#1F2940" transform="rotate(-10 79 54)"/>
+    <rect x="76" y="62" width="8" height="3" fill="#9CA3AF" transform="rotate(-10 80 63)"/>
+    <circle cx="79" cy="68" r="3" fill="#FBBF24"/>
+    <circle cx="79" cy="68" r="5" fill="#FBBF24" opacity="0.4"/>
+    <circle cx="84" cy="74" r="1.4" fill="#F5C518"/>
+    <circle cx="74" cy="73" r="1.2" fill="#F5C518"/>
+    <rect x="32" y="68" width="14" height="3" fill="#2D3849"/>
+    <circle cx="36" cy="69.5" r="1" fill="#E84545"/>
+    <circle cx="42" cy="69.5" r="1" fill="#22C55E"/>
+  </svg>`,
+
+  'las-tafel': `<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+    <rect x="10" y="86" width="6" height="12" fill="#9CA3AF"/>
+    <rect x="104" y="86" width="6" height="12" fill="#9CA3AF"/>
+    <rect x="6" y="44" width="108" height="42" fill="#1F2940"/>
+    <rect x="6" y="44" width="108" height="3" fill="#2D3849"/>
+    <rect x="6" y="40" width="108" height="6" fill="#9CA3AF"/>
+    <circle cx="18" cy="43" r="1.6" fill="#1A1F2E"/>
+    <circle cx="30" cy="43" r="1.6" fill="#1A1F2E"/>
+    <circle cx="42" cy="43" r="1.6" fill="#1A1F2E"/>
+    <circle cx="54" cy="43" r="1.6" fill="#1A1F2E"/>
+    <circle cx="66" cy="43" r="1.6" fill="#1A1F2E"/>
+    <circle cx="78" cy="43" r="1.6" fill="#1A1F2E"/>
+    <circle cx="90" cy="43" r="1.6" fill="#1A1F2E"/>
+    <circle cx="102" cy="43" r="1.6" fill="#1A1F2E"/>
+    <rect x="6" y="84" width="108" height="3" fill="#1A1F2E"/>
+    <rect x="44" y="26" width="32" height="14" fill="#E8DFC9"/>
+    <rect x="44" y="26" width="32" height="3" fill="#D8CFB5"/>
+    <path d="M 108 40 Q 116 28 116 16" stroke="#1A1F2E" stroke-width="2.5" fill="none"/>
+    <circle cx="116" cy="16" r="4" fill="#9CA3AF"/>
+    <circle cx="116" cy="16" r="1.6" fill="#1F2940"/>
+    <rect x="86" y="18" width="3" height="22" fill="#1F2940"/>
+    <circle cx="87.5" cy="22" r="2" fill="#FBBF24"/>
+    <rect x="78" y="34" width="3" height="8" fill="#9CA3AF"/>
+    <rect x="20" y="56" width="14" height="8" fill="#E8DFC9"/>
+    <rect x="38" y="58" width="22" height="4" fill="#E8DFC9"/>
+  </svg>`,
+
+  'cnc-frees': `<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+    <rect x="8" y="86" width="22" height="12" fill="#E8E8EA"/>
+    <rect x="62" y="86" width="22" height="12" fill="#E8E8EA"/>
+    <rect x="6" y="78" width="80" height="10" fill="#D8DCE0"/>
+    <rect x="10" y="14" width="76" height="68" fill="#F5C518"/>
+    <rect x="10" y="14" width="76" height="3" fill="#FFD84A"/>
+    <rect x="14" y="22" width="68" height="42" fill="#1A1F2E"/>
+    <rect x="14" y="22" width="68" height="3" fill="#2D3849"/>
+    <rect x="38" y="28" width="20" height="22" fill="#9CA3AF"/>
+    <rect x="36" y="50" width="24" height="4" fill="#B5BAC2"/>
+    <rect x="42" y="42" width="12" height="6" fill="#FBBF24" opacity="0.9"/>
+    <rect x="20" y="56" width="56" height="6" fill="#E8DFC9"/>
+    <rect x="42" y="52" width="12" height="6" fill="#1F2940"/>
+    <rect x="90" y="22" width="22" height="58" fill="#F5C518"/>
+    <rect x="90" y="22" width="22" height="3" fill="#FFD84A"/>
+    <rect x="94" y="28" width="14" height="14" fill="#1A1F2E"/>
+    <rect x="96" y="30" width="10" height="2" fill="#22C55E"/>
+    <rect x="96" y="34" width="6" height="1.5" fill="#9CA3AF"/>
+    <rect x="96" y="37" width="8" height="1.5" fill="#9CA3AF"/>
+    <circle cx="97" cy="50" r="2" fill="#22C55E"/>
+    <circle cx="103" cy="50" r="2" fill="#E84545"/>
+    <circle cx="97" cy="58" r="2" fill="#F5C518"/>
+    <circle cx="103" cy="58" r="2" fill="#3B82F6"/>
+    <rect x="94" y="66" width="14" height="3" fill="#2D3849"/>
+    <rect x="94" y="72" width="14" height="3" fill="#2D3849"/>
+    <rect x="20" y="68" width="56" height="10" fill="#1F2940"/>
+    <text x="48" y="76" font-size="7" fill="#F5C518" text-anchor="middle" font-weight="800">CNC</text>
+  </svg>`,
+
+  'cnc-draai': `<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+    <rect x="10" y="86" width="22" height="12" fill="#E8E8EA"/>
+    <rect x="64" y="86" width="22" height="12" fill="#E8E8EA"/>
+    <rect x="8" y="78" width="84" height="10" fill="#D8DCE0"/>
+    <rect x="6" y="26" width="86" height="56" fill="#F5C518"/>
+    <rect x="6" y="26" width="86" height="3" fill="#FFD84A"/>
+    <rect x="10" y="32" width="78" height="32" fill="#1A1F2E"/>
+    <rect x="10" y="32" width="78" height="3" fill="#2D3849"/>
+    <circle cx="22" cy="48" r="7" fill="#9CA3AF"/>
+    <circle cx="22" cy="48" r="3" fill="#1F2940"/>
+    <circle cx="22" cy="48" r="1" fill="#E8E8EA"/>
+    <rect x="22" y="46" width="48" height="4" fill="#9CA3AF"/>
+    <rect x="55" y="42" width="6" height="12" fill="#FBBF24"/>
+    <rect x="14" y="68" width="70" height="10" fill="#1F2940"/>
+    <text x="49" y="76" font-size="7" fill="#F5C518" text-anchor="middle" font-weight="800">CNC</text>
+    <rect x="96" y="32" width="16" height="46" fill="#F5C518"/>
+    <rect x="96" y="32" width="16" height="3" fill="#FFD84A"/>
+    <rect x="100" y="38" width="8" height="10" fill="#1A1F2E"/>
+    <rect x="101" y="40" width="6" height="1.5" fill="#22C55E"/>
+    <rect x="101" y="43" width="4" height="1.5" fill="#9CA3AF"/>
+    <circle cx="101" cy="55" r="1.8" fill="#22C55E"/>
+    <circle cx="107" cy="55" r="1.8" fill="#E84545"/>
+    <circle cx="101" cy="62" r="1.8" fill="#F5C518"/>
+    <circle cx="107" cy="62" r="1.8" fill="#3B82F6"/>
+    <rect x="100" y="70" width="8" height="3" fill="#2D3849"/>
+  </svg>`,
+
+  rek: `<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+    <rect x="8" y="6" width="6" height="86" fill="#1F2940"/>
+    <rect x="106" y="6" width="6" height="86" fill="#1F2940"/>
+    <rect x="14" y="6" width="92" height="6" fill="#1F2940"/>
+    <rect x="14" y="6" width="92" height="2" fill="#2D3849"/>
+    <rect x="14" y="28" width="92" height="3" fill="#2D3849"/>
+    <rect x="14" y="50" width="92" height="3" fill="#2D3849"/>
+    <rect x="14" y="72" width="92" height="3" fill="#2D3849"/>
+    <rect x="14" y="86" width="92" height="6" fill="#1F2940"/>
+    <rect x="18" y="14" width="20" height="14" fill="#E84545"/>
+    <rect x="18" y="14" width="20" height="3" fill="#FF6B5B"/>
+    <rect x="42" y="16" width="14" height="12" fill="#E84545"/>
+    <rect x="60" y="14" width="24" height="14" fill="#E84545"/>
+    <rect x="60" y="14" width="24" height="3" fill="#FF6B5B"/>
+    <rect x="86" y="18" width="16" height="10" fill="#E84545"/>
+    <rect x="18" y="36" width="34" height="14" fill="#E84545"/>
+    <rect x="18" y="36" width="34" height="3" fill="#FF6B5B"/>
+    <rect x="56" y="38" width="22" height="12" fill="#E84545"/>
+    <rect x="82" y="36" width="20" height="14" fill="#E84545"/>
+    <rect x="82" y="36" width="20" height="3" fill="#FF6B5B"/>
+    <rect x="18" y="58" width="16" height="14" fill="#E84545"/>
+    <rect x="18" y="58" width="16" height="3" fill="#FF6B5B"/>
+    <rect x="38" y="60" width="40" height="12" fill="#E84545"/>
+    <rect x="82" y="58" width="20" height="14" fill="#E84545"/>
+    <rect x="82" y="58" width="20" height="3" fill="#FF6B5B"/>
+    <rect x="18" y="78" width="84" height="8" fill="#E84545"/>
+    <rect x="18" y="78" width="84" height="2" fill="#FF6B5B"/>
+  </svg>`,
+
+  pc: `<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+    <rect x="4" y="86" width="6" height="12" fill="#9CA3AF"/>
+    <rect x="110" y="86" width="6" height="12" fill="#9CA3AF"/>
+    <rect x="6" y="68" width="108" height="20" fill="#E8DFC9"/>
+    <rect x="6" y="68" width="108" height="3" fill="#D8CFB5"/>
+    <rect x="30" y="18" width="60" height="44" fill="#1F2940"/>
+    <rect x="30" y="18" width="60" height="3" fill="#2D3849"/>
+    <rect x="34" y="22" width="52" height="34" fill="#1A1F2E"/>
+    <rect x="38" y="26" width="24" height="3" fill="#3B82F6"/>
+    <rect x="38" y="32" width="36" height="2" fill="#9CA3AF"/>
+    <rect x="38" y="36" width="30" height="2" fill="#9CA3AF"/>
+    <rect x="38" y="40" width="34" height="2" fill="#9CA3AF"/>
+    <rect x="38" y="44" width="28" height="2" fill="#9CA3AF"/>
+    <rect x="38" y="48" width="32" height="2" fill="#9CA3AF" opacity="0.7"/>
+    <rect x="56" y="62" width="8" height="8" fill="#1F2940"/>
+    <rect x="44" y="72" width="32" height="6" fill="#1F2940"/>
+    <rect x="48" y="74" width="2" height="2" fill="#9CA3AF"/>
+    <rect x="52" y="74" width="2" height="2" fill="#9CA3AF"/>
+    <rect x="56" y="74" width="2" height="2" fill="#9CA3AF"/>
+    <rect x="60" y="74" width="2" height="2" fill="#9CA3AF"/>
+    <rect x="64" y="74" width="2" height="2" fill="#9CA3AF"/>
+    <rect x="68" y="74" width="2" height="2" fill="#9CA3AF"/>
+    <rect x="86" y="76" width="14" height="3" fill="#1F2940"/>
+  </svg>`,
+
+  meet: `<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+    <rect x="10" y="86" width="6" height="12" fill="#9CA3AF"/>
+    <rect x="104" y="86" width="6" height="12" fill="#9CA3AF"/>
+    <rect x="14" y="50" width="92" height="6" fill="#374151"/>
+    <rect x="14" y="50" width="92" height="2" fill="#4B5563"/>
+    <circle cx="22" cy="53" r="0.8" fill="#9CA3AF"/>
+    <circle cx="32" cy="54" r="0.8" fill="#9CA3AF"/>
+    <circle cx="42" cy="53" r="0.8" fill="#9CA3AF"/>
+    <circle cx="52" cy="54" r="0.8" fill="#9CA3AF"/>
+    <circle cx="62" cy="53" r="0.8" fill="#9CA3AF"/>
+    <circle cx="72" cy="54" r="0.8" fill="#9CA3AF"/>
+    <circle cx="82" cy="53" r="0.8" fill="#9CA3AF"/>
+    <circle cx="92" cy="54" r="0.8" fill="#9CA3AF"/>
+    <rect x="14" y="56" width="92" height="30" fill="#1F2940"/>
+    <rect x="14" y="56" width="92" height="3" fill="#2D3849"/>
+    <rect x="48" y="22" width="24" height="28" fill="#E8DFC9"/>
+    <rect x="48" y="22" width="24" height="3" fill="#D8CFB5"/>
+    <circle cx="60" cy="36" r="6" fill="#1F2940"/>
+    <circle cx="60" cy="36" r="2" fill="#22C55E"/>
+    <rect x="56" y="14" width="8" height="10" fill="#9CA3AF"/>
+    <rect x="20" y="44" width="18" height="6" fill="#9CA3AF"/>
+    <rect x="76" y="46" width="14" height="4" fill="#1F2940"/>
+  </svg>`,
+
+  generic: `<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+    <rect x="6" y="84" width="22" height="14" fill="#E8E8EA"/>
+    <rect x="92" y="84" width="22" height="14" fill="#E8E8EA"/>
+    <rect x="6" y="76" width="108" height="10" fill="#D8DCE0"/>
+    <rect x="14" y="34" width="92" height="46" fill="#1F2940"/>
+    <rect x="14" y="34" width="92" height="3" fill="#2D3849"/>
+    <rect x="10" y="22" width="40" height="14" fill="#E8DFC9"/>
+    <rect x="10" y="22" width="40" height="3" fill="#D8CFB5"/>
+    <rect x="22" y="42" width="20" height="6" fill="#2D3849"/>
+    <polygon points="26,44.5 28,43 30,44.5 29,46.5 27,46.5" fill="#E84545"/>
+    <polygon points="32,44.5 34,43 36,44.5 35,46.5 33,46.5" fill="#F5C518"/>
+    <polygon points="38,44.5 40,43 42,44.5 41,46.5 39,46.5" fill="#22C55E"/>
+    <circle cx="64" cy="56" r="6" fill="#9CA3AF"/>
+    <circle cx="64" cy="56" r="2" fill="#1F2940"/>
+    <rect x="80" y="50" width="16" height="20" fill="#1A1F2E"/>
+  </svg>`,
+};
+
+function getMachineSvg(machineId) {
+  const type = MACHINE_TYPE[machineId] || 'generic';
+  return MACHINE_SVG[type] || MACHINE_SVG.generic;
+}
+
+const state = {
+  zoneIndex: 0,
+  currentUser: null,
+  selectedMachine: null,
+  selectedManipulator: null,
+  activeInfoTab: 'veiligheid',
+  activeEditTab: 'basis',
+  editMode: false,
+  machines: JSON.parse(JSON.stringify(MACHINES)),
+  placements: {},
+};
+const KNOWN_MACHINE_NAMES = new Set();
+function buildKnownNamesIndex() {
+  KNOWN_MACHINE_NAMES.clear();
+  state.machines.forEach(m => {
+    KNOWN_MACHINE_NAMES.add(m.id);
+    KNOWN_MACHINE_NAMES.add(m.name);
+    KNOWN_MACHINE_NAMES.add(m.id.replace(/-/g, ' '));
+    KNOWN_MACHINE_NAMES.add(m.id.replace(/-/g, '_'));
+  });
+}
+function machineFromSplineName(name) {
+  if (!name) return null;
+  return state.machines.find(m =>
+    m.id === name || m.name === name ||
+    m.id.replace(/-/g, ' ') === name ||
+    m.id.replace(/-/g, '_') === name ||
+    (m.name && m.name.toLowerCase() === name.toLowerCase())
+  );
+}
+
+const ZONE_VIEWPORTS = {
+  algemeen: { scale: 1.0,  x: 0,   y: 0   },
+  blauw:    { scale: 1.7,  x: 6,   y: 6   },
+  groen:    { scale: 1.8,  x: -4,  y: 5   },
+  rood:     { scale: 1.9,  x: -20, y: 3   },
+  geel:     { scale: 1.8,  x: 6,   y: -8  },
+  oranje:   { scale: 1.9,  x: -22, y: -10 },
+};
+function applyZoneZoom(zoneKey) {
+  const vp = ZONE_VIEWPORTS[zoneKey] || ZONE_VIEWPORTS.algemeen;
+  const wrap = $('#scene-wrap');
+  if (wrap) {
+    wrap.style.transform = `scale(${vp.scale}) translate(${vp.x}%, ${vp.y}%)`;
+  }
+}
+
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => [...document.querySelectorAll(sel)];
+const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const STORAGE_KEY = 'werkplaats-placements-v1';
+const STORAGE_KEY_EDITS = 'werkplaats-edits-v1';
+let splineReady = false;
+
+function _hasLocalStorage() {
+  try {
+    return typeof localStorage !== 'undefined' && localStorage !== null;
+  } catch (e) { return false; }
+}
+function _hasWindowStorage() {
+  return typeof window !== 'undefined' && typeof window.storage !== 'undefined';
+}
+
+const SharedStore = {
+  available() { return _hasWindowStorage() || _hasLocalStorage(); },
+
+  async load(key) {
+    if (_hasWindowStorage()) {
+      try {
+        const r = await window.storage.get(key, true);
+        if (r?.value) return JSON.parse(r.value);
+      } catch (e) {}
+    }
+    if (_hasLocalStorage()) {
+      try {
+        const v = localStorage.getItem(key);
+        if (v) return JSON.parse(v);
+      } catch (e) {}
+    }
+    return null;
+  },
+
+  async save(key, data) {
+    let ok = false;
+    if (_hasWindowStorage()) {
+      try {
+        await window.storage.set(key, JSON.stringify(data), true);
+        ok = true;
+      } catch (e) { console.warn('window.storage save failed:', e); }
+    }
+    if (_hasLocalStorage()) {
+      try {
+        localStorage.setItem(key, JSON.stringify(data));
+        ok = true;
+      } catch (e) { console.warn('localStorage save failed:', e); }
+    }
+    return ok;
+  },
+};
+
+async function loadPlacementsFromStorage() {
+  const data = await SharedStore.load(STORAGE_KEY);
+  if (data && typeof data === 'object') {
+    state.placements = data;
+    const count = Object.keys(state.placements).length;
+    if (count > 0) {
+      console.log(`✓ ${count} machine-plaatsing(en) geladen uit gedeelde opslag`);
+      if (splineReady) applyAllPlacementsToScene();
+      renderPlacementMarkers();
+    }
+  }
+}
+
+async function savePlacementsToStorage() {
+  const ok = await SharedStore.save(STORAGE_KEY, state.placements);
+  if (ok) updateSyncIndicator(true);
+}
+async function loadEditsFromStorage() {
+  const edits = await SharedStore.load(STORAGE_KEY_EDITS);
+  if (edits && typeof edits === 'object') {
+    let applied = 0;
+    let deleted = 0;
+    Object.entries(edits).forEach(([id, overrides]) => {
+      if (overrides && overrides._deleted) {
+        state.machines = state.machines.filter(x => x.id !== id);
+        deleted++;
+        return;
+      }
+      const m = state.machines.find(x => x.id === id);
+      if (m) { Object.assign(m, overrides); applied++; }
+    });
+    if (applied > 0) console.log(`✓ ${applied} machine-bewerking(en) geladen`);
+    if (deleted > 0) console.log(`✓ ${deleted} machine(s) gewist (uit gedeelde opslag)`);
+    if (applied + deleted > 0) renderMachineList();
+  }
+}
+
+async function saveMachineEditToStorage(machine) {
+  if (!SharedStore.available()) return;
+  try {
+    const edits = (await SharedStore.load(STORAGE_KEY_EDITS)) || {};
+    edits[machine.id] = {
+      name: machine.name,
+      description: machine.description,
+      zone: machine.zone,
+      veiligheid: machine.veiligheid,
+      handleiding: machine.handleiding,
+      controle: machine.controle,
+      smering: machine.smering,
+    };
+    await SharedStore.save(STORAGE_KEY_EDITS, edits);
+    updateSyncIndicator(true);
+  } catch (e) {
+    console.warn('Bewerking opslaan mislukt:', e);
+  }
+}
+async function saveDeletedMachineToStorage(machineId) {
+  if (!SharedStore.available()) return;
+  try {
+    const edits = (await SharedStore.load(STORAGE_KEY_EDITS)) || {};
+    edits[machineId] = { _deleted: true, deletedAt: Date.now() };
+    await SharedStore.save(STORAGE_KEY_EDITS, edits);
+    updateSyncIndicator(true);
+  } catch (e) {
+    console.warn('Verwijdering opslaan mislukt:', e);
+  }
+}
+function applyAllPlacementsToScene() {
+  if (!window._spline) return;
+  let applied = 0;
+  Object.entries(state.placements).forEach(([id, p]) => {
+    const m = state.machines.find(x => x.id === id);
+    if (!m) return;
+    const obj = findSplineObject(m);
+    if (!obj) return;
+    try {
+      if (p.sceneX !== undefined && obj.position) obj.position.x = p.sceneX;
+      if (p.sceneZ !== undefined && obj.position) obj.position.z = p.sceneZ;
+      if (p.rotation !== undefined && obj.rotation) {
+        obj.rotation.y = (p.rotation * Math.PI) / 180;
+      }
+      if (obj.visible !== undefined) obj.visible = true;
+      applied++;
+    } catch (e) {}
+  });
+  if (applied > 0) console.log(`✓ ${applied} object(en) gepositioneerd in Spline-scene`);
+}
+
+let syncIndicatorTimer;
+function updateSyncIndicator(synced) {
+  const el = $('#sync-indicator');
+  if (!el) return;
+  if (synced) {
+    el.classList.remove('hidden');
+    el.classList.add('synced');
+    clearTimeout(syncIndicatorTimer);
+    syncIndicatorTimer = setTimeout(() => el.classList.add('hidden'), 1800);
+  }
+}
+
+function updateDateTime() {
+  const now = new Date();
+  const days = ['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag'];
+  const months = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
+  $('#date-text').textContent = `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]}`;
+  $('#time-text').textContent = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+}
+updateDateTime();
+setInterval(updateDateTime, 30000);
+
+const splineApp = new Application(document.getElementById('canvas3d'));
+const SCENE_URL = 'https://prod.spline.design/4hTcjYfXB7qqpJnw/scene.splinecode';
+
+splineApp.load(SCENE_URL)
+  .then(() => {
+    setTimeout(() => $('#scene-loader').classList.add('fade'), 200);
+    window._spline = splineApp;
+    splineReady = true;
+    buildKnownNamesIndex();
+    applyAllPlacementsToScene();
+    applyZoneZoom(ZONE_ORDER[state.zoneIndex]);
+    setupSplineClickHandling();
+    setupCanvasRaycastClick();
+    setTimeout(() => {
+      try {
+        const objs = splineApp.getAllObjects ? splineApp.getAllObjects() : [];
+        if (objs.length) {
+          console.log('Spline objects:', objs.map(o => o.name).filter(Boolean));
+        }
+      } catch (e) {}
+    }, 500);
+  })
+  .catch((err) => {
+    console.warn('Spline scene kon niet laden:', err);
+    $('#scene-loader').innerHTML = `
+      <div style="text-align:center; max-width:340px;">
+        <p style="font-weight:600; color:#1A1A1A; margin-bottom:8px;">3D-scene niet bereikbaar</p>
+        <p style="font-size:0.88rem; color:#888;">Spline kon niet laden (offline of CORS). De interface werkt verder normaal.</p>
+      </div>`;
+  });
+const customMappings = {};
+const STORAGE_KEY_MAPPINGS = 'werkplaats-mappings-v1';
+
+async function loadMappingsFromStorage() {
+  const data = await SharedStore.load(STORAGE_KEY_MAPPINGS);
+  if (data && typeof data === 'object') {
+    Object.assign(customMappings, data);
+    Object.keys(customMappings).forEach(name => KNOWN_MACHINE_NAMES.add(name));
+    const count = Object.keys(customMappings).length;
+    if (count > 0) console.log(`✓ ${count} object-koppelingen geladen uit storage`);
+  }
+}
+
+async function saveMappingsToStorage() {
+  await SharedStore.save(STORAGE_KEY_MAPPINGS, customMappings);
+  updateSyncIndicator(true);
+}
+
+let lastClickHandled = 0;
+function handleObjectClick(splineName, source) {
+  const now = Date.now();
+  if (now - lastClickHandled < 400) return;
+  lastClickHandled = now;
+
+  console.log(`\n━━━ KLIK GEDETECTEERD ━━━`);
+  console.log(`Source: ${source}  |  Object: "${splineName}"`);
+  const mapped = customMappings[splineName];
+  if (mapped === '__none__') {
+    console.log('  → gemarkeerd als geen-machine, klik genegeerd');
+    return;
+  }
+  if (mapped) {
+    const m = state.machines.find(x => x.id === mapped);
+    if (m) {
+      console.log(`  → custom mapping → ${m.name}`);
+      openMachineForRole(m);
+      return;
+    }
+  }
+
+  const machine = machineFromSplineName(splineName);
+  if (machine) {
+    console.log(`  → auto-match → ${machine.name}`);
+    openMachineForRole(machine);
+    return;
+  }
+
+  console.log(`  → onbekend object`);
+  if (state.currentUser) {
+    console.log(`  → admin: koppel-modal opent`);
+    showObjectMapperModal(splineName);
+  } else {
+    console.log(`  → student: niet gekoppeld — geen actie`);
+  }
+}
+
+function openMachineForRole(machine) {
+  if (state.editMode && state.currentUser) {
+    openManipulator(machine.id);
+  } else {
+    openInfo(machine.id);
+  }
+}
+
+function setupSplineClickHandling() {
+  if (!splineApp?.addEventListener) {
+    console.warn('⚠ Spline addEventListener niet beschikbaar');
+    return;
+  }
+  splineApp.addEventListener('mouseDown', (e) => {
+    const name = e?.target?.name || '';
+    console.log('🖱️  [Spline mouseDown]', { name, targetType: e?.target?.constructor?.name });
+    if (name) {
+      handleObjectClick(name, 'spline-event');
+    } else {
+      console.log('  ↳ Object heeft geen naam in Spline. Klik wordt niet doorgestuurd.');
+    }
+  });
+  console.log('✓ Spline mouseDown listener geactiveerd');
+
+  setTimeout(() => {
+    try {
+      const objs = splineApp.getAllObjects ? splineApp.getAllObjects() : [];
+      const named = objs.filter(o => o.name && o.name.trim() !== '');
+      console.log(`📋 Spline-scene heeft ${objs.length} objecten (${named.length} met naam):`);
+      named.slice(0, 50).forEach(o => console.log(`   • "${o.name}"`));
+      if (named.length > 50) console.log(`   ... + ${named.length - 50} meer`);
+      if (named.length === 0) {
+        console.warn('⚠ GEEN OBJECTEN MET NAMEN! In Spline editor: selecteer elk object → geef het een naam → save scene.');
+      }
+    } catch (e) {
+      console.warn('getAllObjects faalde:', e);
+    }
+  }, 800);
+}
+
+const raycaster = new THREE.Raycaster();
+const mouseNDC = new THREE.Vector2();
+let _splineSceneCam = null;
+
+function findSplineSceneAndCamera() {
+  if (_splineSceneCam) return _splineSceneCam;
+  if (!splineApp) return null;
+
+  const visited = new WeakSet();
+  let scene = null;
+  let camera = null;
+  const candidateCameras = [];
+  const candidateScenes = [];
+
+  function search(obj, depth) {
+    if (depth > 10 || !obj || typeof obj !== 'object') return;
+    try {
+      if (visited.has(obj)) return;
+      visited.add(obj);
+    } catch (e) { return; }
+
+    if (obj.isScene === true) candidateScenes.push(obj);
+    if (obj.isCamera === true ||
+        (obj.projectionMatrix && obj.matrixWorld && typeof obj.fov === 'number')) {
+      candidateCameras.push(obj);
+    }
+
+    let keys;
+    try { keys = Object.keys(obj); } catch (e) { return; }
+    for (const key of keys) {
+      if (key.startsWith('__') || key === 'parent' || key === 'children') continue;
+      try { search(obj[key], depth + 1); } catch (e) {}
+    }
+  }
+
+  search(splineApp, 0);
+  if (candidateScenes.length) {
+    scene = candidateScenes.reduce((a, b) =>
+      (a.children?.length || 0) >= (b.children?.length || 0) ? a : b);
+  }
+  if (candidateCameras.length) {
+    camera = candidateCameras[0];
+  }
+
+  console.log(`🔍 Brute-force search: ${candidateScenes.length} scene(s), ${candidateCameras.length} camera(s) gevonden`);
+  if (scene && camera) {
+    console.log(`✓ Gebruik scene met ${scene.children?.length || 0} children + camera (fov=${camera.fov || '?'})`);
+    _splineSceneCam = { scene, camera };
+    return _splineSceneCam;
+  }
+  console.warn('⚠ Kon Spline scene/camera NIET vinden — raycasting onmogelijk');
+  return null;
+}
+
+function setupCanvasRaycastClick() {
+  const canvas = $('#canvas3d');
+  if (!canvas) {
+    console.warn('⚠ Canvas #canvas3d niet gevonden voor raycast setup');
+    return;
+  }
+
+  canvas.addEventListener('click', (e) => {
+    if (!splineReady) {
+      console.log('🖱️  [Canvas click] Spline nog niet klaar — wacht even');
+      return;
+    }
+    console.log('🖱️  [Canvas click] op', e.clientX, e.clientY);
+
+    const sc = findSplineSceneAndCamera();
+    if (!sc) {
+      console.warn('  ↳ Geen scene/camera bereikbaar via raycasting');
+      return;
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    mouseNDC.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    mouseNDC.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    console.log(`  ↳ NDC: (${mouseNDC.x.toFixed(2)}, ${mouseNDC.y.toFixed(2)})`);
+
+    raycaster.setFromCamera(mouseNDC, sc.camera);
+    const hits = raycaster.intersectObjects(sc.scene.children, true);
+    if (hits.length === 0) {
+      console.log('  ↳ Geen 3D-object op deze positie (klik op lege ruimte?)');
+      return;
+    }
+    console.log(`  ↳ ${hits.length} raycast hits`);
+
+    let obj = hits[0].object;
+    let depth = 0;
+    while (obj && depth < 15) {
+      if (obj.name && obj.name.trim() !== '') {
+        console.log(`  ↳ Naam gevonden op depth ${depth}: "${obj.name}"`);
+        handleObjectClick(obj.name, 'raycast');
+        return;
+      }
+      obj = obj.parent;
+      depth++;
+    }
+    console.log('  ↳ Hit gevonden maar geen genaamde ancestor — geef object een naam in Spline');
+  });
+  console.log('✓ Canvas click listener actief (raycasting)');
+}
+
+function showObjectMapperModal(splineName) {
+  document.querySelectorAll('.object-mapper-overlay').forEach(el => el.remove());
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal object-mapper-overlay';
+  overlay.innerHTML = `
+    <div class="modal-panel" style="max-width:540px;display:flex;flex-direction:column;">
+      <button class="modal-close" data-close-mapper aria-label="Sluiten">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <h2 style="font-family:var(--font-display);color:var(--orange);font-size:1.5rem;font-weight:800;margin-bottom:6px;padding-right:32px;">3D-object koppelen</h2>
+      <p style="color:var(--muted);font-size:0.92rem;margin-bottom:14px;">
+        Klik op een machine in de lijst om dit Spline-object te koppelen. Eenmalig instellen — daarna opent het info-paneel automatisch voor iedereen.
+      </p>
+      <div style="background:#F4F4F5;padding:10px 14px;border-radius:8px;font-family:monospace;font-size:0.85rem;margin-bottom:18px;word-break:break-all;color:var(--ink);">
+        Spline-object: <strong>${escapeHtml(splineName)}</strong>
+      </div>
+      <div class="mapper-list" style="overflow-y:auto;max-height:42vh;padding-right:4px;margin:0 -4px;"></div>
+      <div style="display:flex;gap:8px;margin-top:16px;align-items:center;border-top:1px solid var(--line);padding-top:14px;">
+        <button class="btn-ghost" data-close-mapper style="width:auto;padding:10px 18px;">Annuleren</button>
+        <button class="btn-ghost" data-mark-none style="width:auto;padding:10px 18px;color:#888;margin-left:auto;">Geen machine →  negeren</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  const list = overlay.querySelector('.mapper-list');
+  state.machines.forEach(m => {
+    const row = document.createElement('div');
+    row.className = 'machine-row';
+    row.style.cssText = 'cursor:pointer;margin:2px 4px;';
+    row.innerHTML = `
+      <div class="machine-icon zone-${m.zone}">${getMachineSvg(m.id)}</div>
+      <div class="machine-info">
+        <h3>${escapeHtml(m.name)}</h3>
+        <p>${escapeHtml(ZONES[m.zone].label)}</p>
+      </div>
+    `;
+    row.addEventListener('click', () => {
+      customMappings[splineName] = m.id;
+      KNOWN_MACHINE_NAMES.add(splineName);
+      saveMappingsToStorage();
+      overlay.remove();
+      showToast(`✓ "${splineName}" gekoppeld aan ${m.name} — voor iedereen`);
+      openInfo(m.id);
+    });
+    list.appendChild(row);
+  });
+
+  overlay.querySelectorAll('[data-close-mapper]').forEach(btn => {
+    btn.addEventListener('click', () => overlay.remove());
+  });
+  overlay.querySelector('[data-mark-none]').addEventListener('click', () => {
+    customMappings[splineName] = '__none__';
+    saveMappingsToStorage();
+    overlay.remove();
+    showToast(`"${splineName}" gemarkeerd als geen-machine — wordt voortaan genegeerd`);
+  });
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.remove();
+  });
+}
+
+function findSplineObject(machine) {
+  if (!window._spline) return null;
+  const tries = [
+    machine.id,
+    machine.name,
+    machine.name.charAt(0).toUpperCase() + machine.name.slice(1),
+    machine.id.replace(/-/g, ' '),
+    machine.id.replace(/-/g, '_'),
+  ];
+  for (const name of tries) {
+    try {
+      const obj = window._spline.findObjectByName(name);
+      if (obj) return obj;
+    } catch (e) {}
+  }
+  return null;
+}
+
+function renderZone() {
+  const zoneKey = ZONE_ORDER[state.zoneIndex];
+  const zone = ZONES[zoneKey];
+  $('#zone-text').textContent = zone.label;
+  $('#zone-pin').classList.toggle('hidden', !zone.showPin);
+  $$('.legend-item').forEach(el => el.classList.toggle('active', el.dataset.zone === zoneKey));
+  $('#list-zone-text').textContent = zone.label;
+  $('#list-zone-pin').classList.toggle('hidden', !zone.showPin);
+  renderMachineList();
+  applyZoneZoom(zoneKey);
+  triggerSplineZoom(zoneKey);
+}
+
+function triggerSplineZoom(zoneKey) {
+  if (!window._spline) return;
+  try {
+    const obj = window._spline.findObjectByName(zoneKey) || window._spline.findObjectByName(ZONES[zoneKey].label);
+    if (obj) window._spline.emitEvent('mouseDown', obj.name);
+  } catch (e) {}
+}
+
+$('#zone-prev').addEventListener('click', () => { state.zoneIndex = (state.zoneIndex - 1 + ZONE_ORDER.length) % ZONE_ORDER.length; renderZone(); });
+$('#zone-next').addEventListener('click', () => { state.zoneIndex = (state.zoneIndex + 1) % ZONE_ORDER.length; renderZone(); });
+$('#list-prev').addEventListener('click', () => { state.zoneIndex = (state.zoneIndex - 1 + ZONE_ORDER.length) % ZONE_ORDER.length; renderZone(); });
+$('#list-next').addEventListener('click', () => { state.zoneIndex = (state.zoneIndex + 1) % ZONE_ORDER.length; renderZone(); });
+
+$$('.legend-item').forEach(el => {
+  el.addEventListener('click', () => {
+    const idx = ZONE_ORDER.indexOf(el.dataset.zone);
+    if (idx >= 0) { state.zoneIndex = idx; renderZone(); }
+  });
+});
+
+function renderMachineList() {
+  const zoneKey = ZONE_ORDER[state.zoneIndex];
+  const list = $('#machine-list');
+  list.innerHTML = '';
+
+  const filtered = zoneKey === 'algemeen'
+    ? state.machines
+    : state.machines.filter(m => m.zone === zoneKey);
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<p style="text-align:center; color:#888; padding:30px;">Geen machines in deze zone.</p>';
+    return;
+  }
+
+  filtered.forEach(m => {
+    const zone = ZONES[m.zone];
+    const row = document.createElement('div');
+    row.className = 'machine-row';
+    if (state.selectedMachine === m.id) row.classList.add('selected');
+    const adminButtons = state.currentUser ? `
+      <div class="machine-actions">
+        ${state.editMode ? `
+        <button class="machine-action" data-manip="${m.id}" title="Verplaatsen/Roteren in 3D">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></svg>
+        </button>` : ''}
+        <button class="machine-action" data-edit="${m.id}" title="Inhoud bewerken">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="machine-action delete" data-delete="${m.id}" title="Machine wissen">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
+        </button>
+      </div>
+    ` : '';
+
+    row.innerHTML = `
+      <div class="machine-icon zone-${m.zone}">${getMachineSvg(m.id)}</div>
+      <div class="machine-info">
+        <h3>${escapeHtml(m.name)}</h3>
+        <p>${escapeHtml(zone.label)}</p>
+      </div>
+      ${adminButtons}
+    `;
+    row.addEventListener('click', (e) => {
+      if (e.target.closest('[data-manip]'))       openManipulator(m.id);
+      else if (e.target.closest('[data-edit]'))   openEditModal(m.id);
+      else if (e.target.closest('[data-delete]')) deleteMachine(m.id);
+      else                                         openInfo(m.id);
+    });
+    list.appendChild(row);
+  });
+}
+
+let infoSpline = null;
+let infoSplineLoadPromise = null;
+
+async function getOrInitInfoSpline() {
+  if (infoSpline) return infoSpline;
+  if (infoSplineLoadPromise) return infoSplineLoadPromise;
+  infoSplineLoadPromise = (async () => {
+    const canvas = $('#info-canvas-3d');
+    if (!canvas) return null;
+    try {
+      const app = new Application(canvas);
+      await app.load(SCENE_URL);
+      infoSpline = app;
+      console.log('✓ Info-Spline geladen');
+      return app;
+    } catch (e) {
+      console.warn('Info-Spline kon niet laden:', e);
+      return null;
+    } finally {
+      infoSplineLoadPromise = null;
+    }
+  })();
+  return infoSplineLoadPromise;
+}
+
+async function focusInfoOn(machine) {
+  const loader = $('#info-3d-loader');
+  const fallback = $('#info-3d-fallback');
+  const canvas = $('#info-canvas-3d');
+  loader?.classList.remove('hidden');
+  fallback?.classList.add('hidden');
+  canvas?.classList.remove('hidden');
+
+  try {
+    const app = await getOrInitInfoSpline();
+    if (!app) throw new Error('Spline niet beschikbaar');
+
+    if (KNOWN_MACHINE_NAMES.size === 0) buildKnownNamesIndex();
+    const myNames = new Set([
+      machine.id, machine.name,
+      machine.id.replace(/-/g, ' '),
+      machine.id.replace(/-/g, '_'),
+    ]);
+
+    const allObjs = app.getAllObjects ? app.getAllObjects() : [];
+    let foundInScene = false;
+    for (const obj of allObjs) {
+      if (!obj?.name || obj.visible === undefined) continue;
+      if (KNOWN_MACHINE_NAMES.has(obj.name)) {
+        const isThis = myNames.has(obj.name);
+        try {
+          obj.visible = isThis;
+          if (isThis) foundInScene = true;
+        } catch (e) {}
+      }
+    }
+
+    try { app.emitEvent('lookAt', machine.id); } catch (e) {}
+    try { app.emitEvent('mouseHover', machine.id); } catch (e) {}
+
+    if (!foundInScene) {
+      canvas?.classList.add('hidden');
+      if (fallback) {
+        fallback.innerHTML = getMachineSvg(machine.id);
+        fallback.classList.remove('hidden');
+      }
+    }
+  } catch (e) {
+    canvas?.classList.add('hidden');
+    if (fallback) {
+      fallback.innerHTML = getMachineSvg(machine.id);
+      fallback.classList.remove('hidden');
+    }
+  } finally {
+    setTimeout(() => loader?.classList.add('hidden'), 200);
+  }
+}
+
+function openInfo(machineId) {
+  const m = state.machines.find(x => x.id === machineId);
+  if (!m) return;
+  state.selectedMachine = machineId;
+  state.activeInfoTab = 'veiligheid';
+
+  const zone = ZONES[m.zone];
+  $('#info-title').textContent = m.name;
+  $('#info-zone-tag').textContent = zone.label;
+  $('#info-zone-tag').style.background = zone.color;
+
+  $$('.info-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'veiligheid'));
+  renderInfoBody(m);
+  closeAllModals();
+  $('#info-modal').classList.remove('hidden');
+
+  focusInfoOn(m);
+
+  renderMachineList();
+}
+
+function renderInfoBody(m) {
+  const body = $('#info-body');
+  const tab = state.activeInfoTab;
+  if (tab === 'veiligheid' && m.veiligheid) {
+    body.innerHTML = `
+      <p>${escapeHtml(m.description || '')}</p>
+      <h4>Verplichte PBM</h4>
+      <ul>${(m.veiligheid.pbm || []).map(p => `<li>${escapeHtml(p)}</li>`).join('')}</ul>
+      <h4>Veiligheidsregels</h4>
+      <ul>${(m.veiligheid.regels || []).map(p => `<li>${escapeHtml(p)}</li>`).join('')}</ul>
+      <div class="warning-band">⚠️ Bij twijfel of incident: machine direct stoppen via noodstop en docent verwittigen.</div>
+    `;
+  } else if (tab === 'handleiding' && m.handleiding) {
+    body.innerHTML = `
+      <h4>Werkstappen</h4>
+      <ol style="padding-left:22px;">${(m.handleiding.stappen || []).map(s => `<li style="margin:8px 0; color:var(--ink-2); font-size:0.92rem;">${escapeHtml(s)}</li>`).join('')}</ol>
+    `;
+  } else if (tab === 'controle' && m.controle) {
+    body.innerHTML = `<h4>Onderhoudsschema</h4><ul>${m.controle.map(s => `<li>${escapeHtml(s)}</li>`).join('')}</ul>`;
+  } else if (tab === 'smering' && m.smering) {
+    body.innerHTML = `<h4>Smeerpunten</h4><ul>${m.smering.map(s => `<li>${escapeHtml(s)}</li>`).join('')}</ul>`;
+  } else {
+    body.innerHTML = `<p style="color:#888;">Geen gegevens beschikbaar voor dit tabblad.</p>`;
+  }
+}
+
+$$('.info-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    state.activeInfoTab = tab.dataset.tab;
+    $$('.info-tab').forEach(t => t.classList.toggle('active', t === tab));
+    const m = state.machines.find(x => x.id === state.selectedMachine);
+    if (m) renderInfoBody(m);
+  });
+});
+
+$('#auth-btn').addEventListener('click', () => {
+  if (state.currentUser) {
+    state.currentUser = null;
+    state.editMode = false;
+    state.selectedManipulator = null;
+    $('#user-name').classList.add('hidden');
+    $('#edit-mode-btn').classList.add('hidden');
+    $('#admin-drawer').classList.add('hidden');
+    $('#manipulator-panel').classList.add('hidden');
+    $('#auth-btn').innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>`;
+    renderMachineList();
+    showToast('Afgemeld');
+  } else {
+    closeAllModals();
+    $('#login-modal').classList.remove('hidden');
+    $('#login-user').focus();
+  }
+});
+
+$('#login-submit').addEventListener('click', tryLogin);
+$('#login-pass').addEventListener('keydown', (e) => { if (e.key === 'Enter') tryLogin(); });
+
+function tryLogin() {
+  const user = $('#login-user').value.trim().toLowerCase();
+  const pass = $('#login-pass').value;
+  const match = USERS[user];
+  if (match && match.password === pass) {
+    state.currentUser = match;
+    $('#user-name').textContent = match.name;
+    $('#user-name').classList.remove('hidden');
+    $('#edit-mode-btn').classList.remove('hidden');
+    $('#login-modal').classList.add('hidden');
+    $('#login-error').classList.add('hidden');
+    $('#login-user').value = '';
+    $('#login-pass').value = '';
+    $('#auth-btn').innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>`;
+    renderMachineList();
+    showToast(`Welkom, ${match.name} — bewerk & wis-knoppen actief in de lijst`);
+  } else {
+    $('#login-error').classList.remove('hidden');
+    $('#login-pass').value = '';
+  }
+}
+
+$('#edit-mode-btn').addEventListener('click', () => {
+  state.editMode = !state.editMode;
+  $('#edit-mode-btn').classList.toggle('active', state.editMode);
+  $('#admin-drawer').classList.toggle('hidden', !state.editMode);
+  if (!state.editMode) {
+    $('#manipulator-panel').classList.add('hidden');
+    state.selectedManipulator = null;
+  }
+  if (state.editMode) {
+    renderDrawer();
+    showToast('Bewerkmodus actief — klik op een machine om te verplaatsen/roteren');
+  } else {
+    showToast('Bewerkmodus uit');
+  }
+  renderMachineList();
+});
+
+$('#drawer-back').addEventListener('click', () => {
+  state.editMode = false;
+  state.selectedManipulator = null;
+  $('#edit-mode-btn').classList.remove('active');
+  $('#admin-drawer').classList.add('hidden');
+  $('#manipulator-panel').classList.add('hidden');
+  renderMachineList();
+});
+
+$('#drawer-toggle').addEventListener('click', () => {
+  $('#admin-drawer').classList.toggle('collapsed');
+});
+
+function renderDrawer() {
+  const list = $('#drawer-machines');
+  list.innerHTML = '';
+  state.machines.forEach(m => {
+    const card = document.createElement('div');
+    card.className = 'drawer-card';
+    card.draggable = true;
+    card.dataset.id = m.id;
+    card.innerHTML = `
+      <span class="drawer-card-badge">3D</span>
+      <div class="drawer-card-icon zone-${m.zone}">${getMachineSvg(m.id)}</div>
+      <div class="drawer-card-name">${escapeHtml(m.name)}</div>
+    `;
+    card.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', m.id);
+      card.classList.add('dragging');
+    });
+    card.addEventListener('dragend', () => card.classList.remove('dragging'));
+    addTouchDrag(card, m.id);
+    list.appendChild(card);
+  });
+}
+
+document.body.addEventListener('dragover', (e) => { if (state.editMode) e.preventDefault(); });
+document.body.addEventListener('drop', (e) => {
+  if (!state.editMode) return;
+  e.preventDefault();
+  const id = e.dataTransfer.getData('text/plain');
+  if (id) placeOnMap(id, e.clientX, e.clientY);
+});
+
+function addTouchDrag(card, id) {
+  let ghost = $('#drag-ghost');
+  card.addEventListener('touchstart', (e) => {
+    ghost.classList.remove('hidden');
+    const t = e.touches[0];
+    ghost.style.left = (t.clientX - 32) + 'px';
+    ghost.style.top = (t.clientY - 24) + 'px';
+  }, { passive: true });
+  card.addEventListener('touchmove', (e) => {
+    const t = e.touches[0];
+    ghost.style.left = (t.clientX - 32) + 'px';
+    ghost.style.top = (t.clientY - 24) + 'px';
+  }, { passive: true });
+  card.addEventListener('touchend', (e) => {
+    ghost.classList.add('hidden');
+    const t = e.changedTouches[0];
+    if (t.clientY < window.innerHeight - 280) placeOnMap(id, t.clientX, t.clientY);
+  });
+}
+
+function placeOnMap(id, screenX, screenY) {
+  const m = state.machines.find(x => x.id === id);
+  if (!m) return;
+  const sceneX = (screenX - window.innerWidth / 2) * 0.3;
+  const sceneZ = (screenY - window.innerHeight / 2) * 0.3;
+
+  const obj = findSplineObject(m);
+  let splineFound = false;
+  if (obj) {
+    try {
+      if (obj.position) {
+        obj.position.x = sceneX;
+        obj.position.z = sceneZ;
+      }
+      if (obj.visible !== undefined) obj.visible = true;
+      splineFound = true;
+    } catch (e) {}
+  }
+
+  const existing = state.placements[id] || {};
+  state.placements[id] = {
+    screenX, screenY,
+    sceneX, sceneZ,
+    rotation: existing.rotation || 0,
+    splineFound,
+    placedBy: state.currentUser?.name || 'admin',
+    placedAt: Date.now(),
+  };
+  renderPlacementMarkers();
+  savePlacementsToStorage();
+  openManipulator(id);
+
+  if (splineFound) {
+    showToast(`✓ "${m.name}" geplaatst — zichtbaar voor iedereen`);
+  } else {
+    showToast(`📍 "${m.name}" gemarkeerd — niet in Spline-scene`);
+  }
+}
+
+function renderPlacementMarkers() {
+  const layer = $('#placement-markers');
+  layer.innerHTML = '';
+  if (!state.editMode) return;
+
+  Object.entries(state.placements).forEach(([id, p]) => {
+    const m = state.machines.find(x => x.id === id);
+    if (!m) return;
+    const marker = document.createElement('div');
+    marker.className = 'placement-marker';
+    if (state.selectedManipulator === id) marker.classList.add('selected');
+    marker.style.left = (p.screenX ?? p.x ?? 0) + 'px';
+    marker.style.top = (p.screenY ?? p.y ?? 0) + 'px';
+    marker.innerHTML = `
+      <div class="marker-card">
+        <div class="marker-card-icon zone-${m.zone}">${getMachineSvg(m.id)}</div>
+        <span class="marker-card-name">${escapeHtml(m.name)}</span>
+      </div>
+      <div class="marker-tail"></div>
+    `;
+    marker.addEventListener('click', () => openManipulator(id));
+    layer.appendChild(marker);
+  });
+}
+
+function openManipulator(machineId) {
+  const m = state.machines.find(x => x.id === machineId);
+  if (!m) return;
+  state.selectedManipulator = machineId;
+
+  $('#manip-machine-name').textContent = m.name;
+  $('#manip-machine-icon').innerHTML = getMachineSvg(m.id);
+  $('#manip-machine-icon').className = `manip-icon-svg zone-${m.zone}`;
+
+  const obj = findSplineObject(m);
+  const statusDot = $('.manipulator-header .status-dot');
+  const statusText = $('#manip-status-text');
+  if (obj) {
+    statusDot.className = 'status-dot status-ok';
+    statusText.textContent = 'Gevonden in 3D-scene — wijzigingen werken direct';
+  } else {
+    statusDot.className = 'status-dot status-warn';
+    statusText.textContent = 'Object niet in Spline-scene — alleen markering';
+  }
+
+  const rot = state.placements[machineId]?.rotation || 0;
+  $('#manip-rotation').textContent = `${rot}°`;
+
+  $('#manipulator-panel').classList.remove('hidden');
+  renderPlacementMarkers();
+}
+
+$('#manip-close').addEventListener('click', () => {
+  $('#manipulator-panel').classList.add('hidden');
+  state.selectedManipulator = null;
+  renderPlacementMarkers();
+});
+
+$('#manip-delete').addEventListener('click', () => {
+  if (!state.selectedManipulator) return;
+  const m = state.machines.find(x => x.id === state.selectedManipulator);
+  if (!m) return;
+  if (!confirm(`"${m.name}" verwijderen van de kaart?\n\nDe machine blijft in de catalogus staan — alleen de plaatsing op de 3D-kaart wordt gewist. Deze actie is voor alle gebruikers zichtbaar.`)) return;
+
+  delete state.placements[m.id];
+  const obj = findSplineObject(m);
+  if (obj && obj.visible !== undefined) {
+    try { obj.visible = false; } catch (e) {}
+  }
+  $('#manipulator-panel').classList.add('hidden');
+  state.selectedManipulator = null;
+  renderPlacementMarkers();
+  savePlacementsToStorage();
+  showToast(`🗑️ "${m.name}" verwijderd — synchroniseerd voor iedereen`);
+});
+
+$$('.dpad-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (!state.selectedManipulator) return;
+    const dir = btn.dataset.move;
+    const m = state.machines.find(x => x.id === state.selectedManipulator);
+    const obj = findSplineObject(m);
+    const PX_STEP = 50;
+    const SCENE_STEP = 15;
+
+    const p = state.placements[m.id] || {
+      screenX: window.innerWidth / 2,
+      screenY: window.innerHeight / 2,
+      sceneX: 0, sceneZ: 0, rotation: 0, splineFound: !!obj,
+    };
+
+    if (dir === 'left')  { p.screenX -= PX_STEP; p.sceneX = (p.sceneX || 0) - SCENE_STEP; }
+    if (dir === 'right') { p.screenX += PX_STEP; p.sceneX = (p.sceneX || 0) + SCENE_STEP; }
+    if (dir === 'up')    { p.screenY -= PX_STEP; p.sceneZ = (p.sceneZ || 0) - SCENE_STEP; }
+    if (dir === 'down')  { p.screenY += PX_STEP; p.sceneZ = (p.sceneZ || 0) + SCENE_STEP; }
+    state.placements[m.id] = p;
+    renderPlacementMarkers();
+
+    if (obj && obj.position) {
+      try {
+        obj.position.x = p.sceneX;
+        obj.position.z = p.sceneZ;
+      } catch (e) {}
+    }
+    savePlacementsToStorage();
+  });
+});
+
+$$('.rot-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (!state.selectedManipulator) return;
+    const action = btn.dataset.rotate;
+    const m = state.machines.find(x => x.id === state.selectedManipulator);
+    const obj = findSplineObject(m);
+    const p = state.placements[m.id] = state.placements[m.id] || {
+      screenX: window.innerWidth / 2,
+      screenY: window.innerHeight / 2,
+      sceneX: 0, sceneZ: 0, rotation: 0, splineFound: !!obj,
+    };
+
+    if (action === 'snap') {
+      p.rotation = 0;
+    } else {
+      p.rotation = (p.rotation + parseInt(action, 10)) % 360;
+      if (p.rotation < 0) p.rotation += 360;
+    }
+    $('#manip-rotation').textContent = `${p.rotation}°`;
+
+    if (obj && obj.rotation) {
+      try {
+        obj.rotation.y = (p.rotation * Math.PI) / 180;
+      } catch (e) {}
+    }
+    savePlacementsToStorage();
+  });
+});
+
+function openEditModal(machineId) {
+  const m = state.machines.find(x => x.id === machineId);
+  if (!m) return;
+  state.selectedMachine = machineId;
+  state.activeEditTab = 'basis';
+  $('#edit-machine-name').textContent = m.name;
+  $('#edit-zone-name').textContent = ZONES[m.zone].label;
+  $('#edit-zone-dot').style.background = ZONES[m.zone].color;
+  $$('.edit-tab').forEach(t => t.classList.toggle('active', t.dataset.editTab === 'basis'));
+  renderEditBody(m);
+  closeAllModals();
+  $('#edit-modal').classList.remove('hidden');
+}
+
+function renderEditBody(m) {
+  const body = $('#edit-body');
+  const tab = state.activeEditTab;
+  if (tab === 'basis') {
+    body.innerHTML = `
+      <label class="form-label">Naam <input id="f-name" type="text" value="${escapeHtml(m.name)}" /></label>
+      <label class="form-label">Subtitel <input id="f-sub" type="text" placeholder="Optioneel — korte omschrijving" /></label>
+      <label class="form-label">Beschrijving / Notities
+        <textarea id="f-desc" rows="4">${escapeHtml(m.description || '')}</textarea>
+      </label>
+      <label class="form-label">Zone
+        <select id="f-zone">
+          ${ZONE_ORDER.filter(z => z !== 'algemeen').map(z => `
+            <option value="${z}" ${z === m.zone ? 'selected' : ''}>Zone ${zoneNumber(z)} ${ZONES[z].label}</option>
+          `).join('')}
+        </select>
+      </label>
+      <label class="form-label">3D Model op de kaart (GLB/GLTF)
+        <input id="f-model" type="text" value="/assets/models/${m.id}.gltf" />
+      </label>
+      <p class="path-confirm">✓ 3D model ingesteld — zichtbaar op de werkplaatskaart na opslaan</p>
+    `;
+  } else if (tab === 'veiligheid') {
+    body.innerHTML = `
+      <label class="form-label">Verplichte PBM (1 per regel)
+        <textarea id="f-pbm" rows="4">${escapeHtml((m.veiligheid?.pbm || []).join('\n'))}</textarea>
+      </label>
+      <label class="form-label">Veiligheidsregels (1 per regel)
+        <textarea id="f-regels" rows="6">${escapeHtml((m.veiligheid?.regels || []).join('\n'))}</textarea>
+      </label>
+    `;
+  } else if (tab === 'handleiding') {
+    body.innerHTML = `
+      <label class="form-label">Werkstappen (1 per regel, in volgorde)
+        <textarea id="f-stappen" rows="8">${escapeHtml((m.handleiding?.stappen || []).join('\n'))}</textarea>
+      </label>
+    `;
+  } else if (tab === 'controle') {
+    body.innerHTML = `
+      <label class="form-label">Onderhoudspunten (1 per regel)
+        <textarea id="f-controle" rows="6">${escapeHtml((m.controle || []).join('\n'))}</textarea>
+      </label>
+    `;
+  } else if (tab === 'smering') {
+    body.innerHTML = `
+      <label class="form-label">Smeerpunten (1 per regel)
+        <textarea id="f-smering" rows="6">${escapeHtml((m.smering || []).join('\n'))}</textarea>
+      </label>
+    `;
+  }
+}
+
+function zoneNumber(z) {
+  return { blauw: '01', groen: '02', rood: '03', geel: '04', oranje: '05' }[z] || '';
+}
+
+$$('.edit-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    saveCurrentEditTab();
+    state.activeEditTab = tab.dataset.editTab;
+    $$('.edit-tab').forEach(t => t.classList.toggle('active', t === tab));
+    const m = state.machines.find(x => x.id === state.selectedMachine);
+    if (m) renderEditBody(m);
+  });
+});
+
+function saveCurrentEditTab() {
+  const m = state.machines.find(x => x.id === state.selectedMachine);
+  if (!m) return;
+  const tab = state.activeEditTab;
+  if (tab === 'basis') {
+    if ($('#f-name')) m.name = $('#f-name').value.trim() || m.name;
+    if ($('#f-desc')) m.description = $('#f-desc').value;
+    if ($('#f-zone')) m.zone = $('#f-zone').value;
+  } else if (tab === 'veiligheid') {
+    m.veiligheid = m.veiligheid || {};
+    if ($('#f-pbm')) m.veiligheid.pbm = $('#f-pbm').value.split('\n').map(s => s.trim()).filter(Boolean);
+    if ($('#f-regels')) m.veiligheid.regels = $('#f-regels').value.split('\n').map(s => s.trim()).filter(Boolean);
+  } else if (tab === 'handleiding') {
+    m.handleiding = m.handleiding || {};
+    if ($('#f-stappen')) m.handleiding.stappen = $('#f-stappen').value.split('\n').map(s => s.trim()).filter(Boolean);
+  } else if (tab === 'controle') {
+    if ($('#f-controle')) m.controle = $('#f-controle').value.split('\n').map(s => s.trim()).filter(Boolean);
+  } else if (tab === 'smering') {
+    if ($('#f-smering')) m.smering = $('#f-smering').value.split('\n').map(s => s.trim()).filter(Boolean);
+  }
+}
+
+$('#edit-save').addEventListener('click', () => {
+  saveCurrentEditTab();
+  const m = state.machines.find(x => x.id === state.selectedMachine);
+  if (m) saveMachineEditToStorage(m);
+  $('#edit-modal').classList.add('hidden');
+  showToast('✓ Wijzigingen opgeslagen — zichtbaar voor iedereen');
+  renderMachineList();
+});
+
+function deleteMachine(id) {
+  const m = state.machines.find(x => x.id === id);
+  if (!m) return;
+  if (!confirm(`"${m.name}" definitief wissen?\n\nDe machine wordt voor álle gebruikers verwijderd uit de lijst en de 3D-kaart. Deze actie kan niet ongedaan worden gemaakt.`)) return;
+
+  state.machines = state.machines.filter(x => x.id !== id);
+  delete state.placements[id];
+  if (state.selectedManipulator === id) {
+    state.selectedManipulator = null;
+    $('#manipulator-panel').classList.add('hidden');
+  }
+  try {
+    if (window._spline) {
+      const obj = window._spline.findObjectByName(m.id) ||
+                  window._spline.findObjectByName(m.name);
+      if (obj && obj.visible !== undefined) obj.visible = false;
+    }
+  } catch (e) {}
+
+  renderMachineList();
+  renderPlacementMarkers();
+  saveDeletedMachineToStorage(id);
+  savePlacementsToStorage();
+
+  showToast(`🗑️ "${m.name}" verwijderd — voor iedereen`);
+}
+
+$('#menu-btn').addEventListener('click', () => {
+  if ($('#list-modal').classList.contains('hidden')) {
+    renderMachineList();
+    closeAllModals();
+    $('#list-modal').classList.remove('hidden');
+  } else {
+    $('#list-modal').classList.add('hidden');
+  }
+});
+
+$$('[data-close]').forEach(btn => {
+  btn.addEventListener('click', () => $('#' + btn.dataset.close).classList.add('hidden'));
+});
+$$('.modal').forEach(modal => {
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.classList.add('hidden');
+  });
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAllModals(); });
+
+function closeAllModals() { $$('.modal').forEach(m => m.classList.add('hidden')); }
+let toastTimeout;
+function showToast(msg) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.remove('hidden');
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => t.classList.add('hidden'), 2600);
+}
+buildKnownNamesIndex();
+renderZone();
+loadPlacementsFromStorage();
+loadEditsFromStorage();
+loadMappingsFromStorage();  // ← belangrijk: laad opgeslagen object→machine koppelingen
+console.log('Werkplaats app initialized — gedeelde state + per-machine 3D visuals + click-to-info actief.');
+
+</script>
+</body>
+</html>
